@@ -31,7 +31,12 @@ int main(void)
 	sram_write_string(" - BYGGERN - G17");
 	while(1){
 		menu_update();
+		unsigned int temp = recieve_UART();
+		send_UART(temp);
 	}
+	
+	
+	
 }
 
 

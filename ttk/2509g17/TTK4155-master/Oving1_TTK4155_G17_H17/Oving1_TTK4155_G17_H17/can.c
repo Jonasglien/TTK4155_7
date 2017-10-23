@@ -14,8 +14,8 @@ void CAN_initialize(void){
 	MCP2515_initialize();
 	int i = 1;
 	i++;
-	EMCUCR &= ~(1<<ISC2);
-	GICR |= (1<<INT2);
+	EMCUCR &= ~(1<<ISC2); /*Extended MCU Control Register bit 0 ....turned off? */
+	GICR |= (1<<INT2);   /* General Interrupt Control Register port int2 defined as on?*/
 	MCP2515_bit_modify(CANINTE,0b00000001,0b00000001);
 	CAN_construct_meassage(CAN_ID,CAN_MESSAGE_LENGTH);
 }
