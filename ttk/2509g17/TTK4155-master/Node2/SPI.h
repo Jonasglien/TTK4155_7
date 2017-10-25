@@ -18,12 +18,21 @@
 #include "MCP2515.h"
 
 //------------------------------------------//
+//	PIN DEFINITIONS							//
+//------------------------------------------//
+#define		SPI_SS			PB7
+#define		SPI_MOSI		PB2
+#define		SPI_MISO		PB3
+#define		SPI_SCK			PB1
+
+
+//------------------------------------------//
 //	FUNCTIONS								//
 //------------------------------------------//
 
 void SPI_initialize(void);
 void SPI_send(char data);
-char SPI_read(void);
+char SPI_receive(void);
 void SPI_select(void);
 void SPI_deselect(void);
 

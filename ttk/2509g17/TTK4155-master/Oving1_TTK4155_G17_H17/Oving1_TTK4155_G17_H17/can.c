@@ -50,6 +50,8 @@ void CAN_send_byte(CAN_message_t* message,uint8_t n){
 	}
 	
 	MCP2515_request_to_send(0x80+(1<<n));
+	printf("CAN_send_byte: ID %i L: %i DATA: %i %i %i %i %i %i %i %i\n",CAN_send_buffer.id,CAN_send_buffer.length,CAN_send_buffer.data[0],CAN_send_buffer.data[1],CAN_send_buffer.data[2],CAN_send_buffer.data[3],CAN_send_buffer.data[4],CAN_send_buffer.data[5],CAN_send_buffer.data[6],CAN_send_buffer.data[7]);
+
 	//printf("ID %i L: %i DATA: %i %i %i %i %i %i %i %i\n",CAN_send_buffer.id,CAN_send_buffer.length,CAN_send_buffer.data[0],CAN_send_buffer.data[1],CAN_send_buffer.data[2],CAN_send_buffer.data[3],CAN_send_buffer.data[4],CAN_send_buffer.data[5],CAN_send_buffer.data[6],CAN_send_buffer.data[7]);
 	
 }
@@ -68,7 +70,9 @@ void CAN_data_receive() {
 		}
 		
 	}
-	printf("%i",CAN_receive_buffer.data[0]);
+	//printf("%i",CAN_receive_buffer.data[0]);
+	printf("CAN_data_receive: ID %i L: %i DATA: %i %i %i %i %i %i %i %i\n",CAN_receive_buffer.id,CAN_receive_buffer.length,CAN_receive_buffer.data[0],CAN_receive_buffer.data[1],CAN_receive_buffer.data[2],CAN_receive_buffer.data[3],CAN_receive_buffer.data[4],CAN_receive_buffer.data[5],CAN_receive_buffer.data[6],CAN_receive_buffer.data[7]);
+	
 	MCP2515_bit_modify(MCP_CANINTF,0xFF,0); //clear all interrupts //CHANGE THIS SO IT JUST CLEARS THE CORRECT INTERRUPTS
 }
 

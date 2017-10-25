@@ -6,13 +6,64 @@
  */ 
 #include "SPI.h"
 
-#define		SPI_SS			PB0
-#define		SPI_MOSI		PB2
-#define		SPI_MISO		PB3
-#define		SPI_SCK			PB1
+
 
 void SPI_initialize(void){
+
+	/* Set MOSI and SCK output, all others input */
+	DDRB |= (1<<SPI_MOSI)|(1<<SPI_SCK)|(1<<SPI_SS)|(1<<PB0);
+	/* Enable SPI, Master, set clock rate fck/16 */
+	SPCR |= (1<<SPE)|(1<<MSTR)|(1<<SPR0);
+		
+	SPI_deselect();
+	printf("SPI communication initialized.\n");
+}
+
+
+void SPI_send(char data) {
+	
+	// Start the transmission
+	SPDR = data;
+	// Wait for transmission complete (checks if the register is empty)
+	while(!(SPSR & (1<<SPIF)));
+
+}
+
+
+char SPI_receive(void){
+	
+	// Send dummy data to receive from slave
+	SPI_send(0);
+	
+	// Wait for reception complete
+	//while(!(SPSR & (1<<SPIF)));
+
+	// Return Data Register
+	return SPDR;
+}
+
+void SPI_select(void){
+	PORTB &= ~(1 << SPI_SS);
+}
+
+void SPI_deselect(void){
+	PORTB |= (1 << SPI_SS);
+}
+
+void SPI_test(void) {
+//	SPI_send(0b00001111);
+//	printf("MCP2515_testSPI");
+	for (int i = 0; i< 256; i++){
+		SPI_send(i);
+		printf("Value of i: %i\t value of reg:\t%i\n",i,SPDR);
+	}	
+}
+
+
+
+
 	/*
+	void SPI_initialize(void)
 	DDRB |=	(1 << SPI_MOSI) | (1 << SPI_SCK) | (1 << SPI_SS);
 	DDRB &= ~(1 << SPI_MISO);
 	//BIT_ON(SPCR,SPIE);		//SPI INTERRUPT ENABLE
@@ -25,68 +76,26 @@ void SPI_initialize(void){
 	BIT_ON(SPCR,SPE);		//SPI ENABLE, overrides the normal pins function (we want this)
 	SPSR |= (1 << SPI2X); //ADD COMMENT------------------------------------------------------------------------------------------------------------
 	//sei();
-	*/
 	
+	
+		/*
 		// Set MOSI and SCK output, all others input
-		DDRB = (1<<SPI_MOSI)|(1<<SPI_SCK)|(1<<SPI_SS);
+		DDRB |= (1<<SPI_MOSI)|(1<<SPI_SCK)|(1<<SPI_SS);
+		
 		// Enable SPI, Master, set clock rate fck/16
-		SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0);
+		SPCR |= (1<<SPE)|(1<<MSTR)|(1<<SPR0);
 		
-		
-	SPI_deselect();
-	printf("SPI communication initialized.\n");
-}
-
-void SPI_test(void) {
-	SPI_send(0b00001111);
-}
-
-void SPI_send(char data) {
-	//Start the transmission
-	SPDR = data;
+		// Set MISO as input
+		DDRB &= ~(1<<SPI_MISO);
+		*/
 	
-	//Wait for data to be transmitted (checks if the register is empty)
-	while(!(SPSR & (1<<SPIF)));
-}
-
-
-
-
-
-/*
+	
+	
+	/*
 void SPI_MasterInit(void){
 	// Set MOSI and SCK output, all others input
 	DDRB = (1<<SPI_MOSI)|(1<<SPI_SCK)|(1<<SPI_SS);
 	// Enable SPI, Master, set clock rate fck/16
 	SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0);
 }
-
-
-void SPI_MasterTransmit(char cData){
-	// Start transmission
-	SPDR = cData;
-	// Wait for transmission complete
-	while (!(SPSR & (1<<SPIF)));
-}
 */
-
-char SPI_read(void){
-	//Send dummy data to read from slave
-	SPI_send(0);
-	
-	//Wait for data to be received
-	while(!(SPSR & (1<<SPIF)));
-
-	return SPDR;
-}
-
-void SPI_select(void){
-	PORTB &= ~(1 << SPI_SS);
-}
-
-void SPI_deselect(void){
-	PORTB |= (1 << SPI_SS);
-}
-
-
-

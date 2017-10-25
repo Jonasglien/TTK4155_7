@@ -10,12 +10,18 @@
 void MCP2515_initialize(void){
 	SPI_initialize();
 	SPI_select();
+	printf("MCP2515_initialize before reset\n");
 		SPI_send(MCP_RESET);
+	printf("MCP2515_initialize after reset\n");
+	
 	SPI_deselect();
-	SPI_select();
-	//MCP2515_bit_modify(MCP_CANCTRL,0b11100000,MODE_CONFIG);
+	
+	volatile uint8_t value = MCP2515_read_status();
+	printf(" MCP2515_read_status: %i\n", value);
+	//SPI_select();
+	MCP2515_bit_modify(MCP_CANCTRL,0b11100000,MODE_CONFIG);
 	MCP2515_bit_modify(MCP_CANCTRL,MODE_MASK,MODE_LOOPBACK);
-	//MCP2515_bit_modify(MCP_CANCTRL,0b11100000,0x00);
+	MCP2515_bit_modify(MCP_CANCTRL,0b11100000,0x00);
 	SPI_deselect();
 		
 }
@@ -37,17 +43,18 @@ void MCP2515_read_buffer(unsigned char data){
 
 uint8_t MCP2515_read(uint8_t adr){
 	SPI_select();
-	//printf("MCP2515_read");
 	SPI_send(MCP_READ);
 	SPI_send(adr);
-	uint8_t received_data = SPI_read();
+	uint8_t received_data = SPI_receive();
 
 	SPI_deselect();
 
 	return received_data;
 }
 
+// Does this function work as it is supposed to ? Dirk 25.10.17
 void MCP2515_testSPI(void){
+	printf("MCP2515_testSPI");
 	for (int i = 0; i< 256; i++){
 		MCP2515_write(0b00000000,i);
 		printf("Value of i: %i\t value of reg:\t%i\n",i,MCP2515_read(0b00000000));
@@ -62,13 +69,16 @@ void MCP2515_request_to_send(uint8_t buffer){
 
 uint8_t MCP2515_read_status(void){
 	SPI_select();
+	//printf("MCP2515_read_status start\n");
 	SPI_send(MCP_READ_STATUS);
-	uint8_t recieved_status = SPI_read();
+	uint8_t recieved_status = SPI_receive();
 	SPI_deselect();
+	//printf("MCP2515_read_status end\n");
 	return recieved_status;
 }
 
 void MCP2515_bit_modify(uint8_t adr, uint8_t mask, uint8_t data){
+	//printf("MCP2515_bit_modify");
 	SPI_select();
 	SPI_send(MCP_BITMOD);
 	SPI_send(adr);
@@ -76,3 +86,11 @@ void MCP2515_bit_modify(uint8_t adr, uint8_t mask, uint8_t data){
 	SPI_send(data);
 	SPI_deselect();
 }
+
+/*
+void MCP2515_reset(void){
+	SPI_select();
+	SPI_send(MCP_RESET);
+	SPI_deselect();
+}
+*/

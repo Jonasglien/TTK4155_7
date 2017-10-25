@@ -42,7 +42,7 @@ void CAN_initialize(void);
 CAN_message_t* CAN_message_receive(void);
 void CAN_send_byte(CAN_message_t* message,uint8_t n);//Sends the data
 void CAN_message_send(uint8_t *data);//array of uint8_t as input, sends the massage to the CAN_send_byte
-void CAN_construct_meassage(int id, uint8_t length);//Used to redefine the ID and length of the messages
+void CAN_construct_message(int id, uint8_t length);//Used to redefine the ID and length of the messages
 uint8_t CAN_transmit_complete(void);//Function that waits for the transmission to be complete
 
 //------------------------------------------//

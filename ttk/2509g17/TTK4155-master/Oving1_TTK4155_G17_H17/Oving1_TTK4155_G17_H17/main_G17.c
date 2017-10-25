@@ -29,10 +29,19 @@ int main(void)
 	initalize();
 	oled_goto_line(7);
 	sram_write_string(" - BYGGERN - G17");
+	
+		uint8_t temp[8] = {1,2,3,4,5,6,7,8};
+		uint8_t *data = &temp;
+		
+		
 	while(1){
 		menu_update();
-		unsigned int temp = recieve_UART();
-		send_UART(temp);
+		//unsigned int temp = recieve_UART();
+		//send_UART(temp);
+		//CAN_message_send(data);
+		//CAN_data_receive();
+		//_delay_ms(1000);
+		
 	}
 	
 	
