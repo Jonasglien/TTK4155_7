@@ -18,41 +18,35 @@
 
 int main(void)
 {
-	init_UART(UBRR);
-			
-	printf("Initializing...\n");
-	
-	
-	CAN_initialize();
-	
-
-	//CAN_receive_buffer =  CAN_message_receive();
-	
-	
-	uint8_t temp[8] = {1,10,3,4,5,6,7,8};
-	uint8_t *data = temp;
-	//CAN_message_send(data);
-	
-	//SPI_test();
-
+	cli();
+	init();
 	sei();
-
-	uint8_t sendCAN = 1;
 	
+	uint8_t temp[8] = {1,2,3,4,5,6,7,8};
+	uint8_t *data = temp;
 
+	uint8_t sendCAN = 0;
+	CAN_message_send(data);
+	_delay_ms(100);
+	data[4] = 100;
+	CAN_message_send(data);
+	CAN_data_receive();
+	CAN_data_receive();
     while(1){
 		if(sendCAN){
-			printf("Sending message!\n");
+			data[7]++;
 			CAN_message_send(data);
-			_delay_ms(100);
 			CAN_data_receive();
 			sendCAN = 1;
-			_delay_ms(200);
-			
 		}
-		
-		
 	}
-	cli();
+	
+	return 1;
+}
 
+
+void init(void){
+	printf("Initializing...\n");
+	init_UART(UBRR);		
+	CAN_initialize();
 }

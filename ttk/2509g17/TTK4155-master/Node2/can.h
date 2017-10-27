@@ -52,6 +52,6 @@ void CAN_data_receive(void);
 //	INTERRUPTS								//
 //------------------------------------------//
 
-ISR(INT2_vect);//Interrupt that fires when a message appears - you got mail!
+ISR(INT4_vect);//Interrupt that fires when a message appears - you got mail!
 
 #endif /* CAN_H_ */

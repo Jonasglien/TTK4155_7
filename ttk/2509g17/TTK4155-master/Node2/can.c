@@ -22,7 +22,6 @@ void CAN_initialize(void){
 	
 	// RX0IE Receive Buffer 0 FUll Interrupt Enable bit
 	MCP2515_bit_modify(MCP_CANINTE,0x01,1);
-	//MCP2515_bit_modify(MCP_CANINTF,0b00000001,1);
 	
 	//set CAN mode
 	MCP2515_bit_modify(MCP_CANCTRL, MODE_MASK, MODE_LOOPBACK); 
@@ -68,7 +67,7 @@ void CAN_send_byte(CAN_message_t* message,uint8_t n){
 	}
 
 	MCP2515_request_to_send(MCP_MERRF+(1<<n));
-	//printf("CAN_send_byte: ID %i Length: %i DATA: %i %i %i %i %i %i %i %i\n",CAN_send_buffer.id,CAN_send_buffer.length,CAN_send_buffer.data[0],CAN_send_buffer.data[1],CAN_send_buffer.data[2],CAN_send_buffer.data[3],CAN_send_buffer.data[4],CAN_send_buffer.data[5],CAN_send_buffer.data[6],CAN_send_buffer.data[7]);
+	printf("CAN_send_byte: \tID %i L: %i DATA: %i %i %i %i %i %i %i %i\n",CAN_send_buffer.id,CAN_send_buffer.length,CAN_send_buffer.data[0],CAN_send_buffer.data[1],CAN_send_buffer.data[2],CAN_send_buffer.data[3],CAN_send_buffer.data[4],CAN_send_buffer.data[5],CAN_send_buffer.data[6],CAN_send_buffer.data[7]);
 
 }
 
@@ -76,13 +75,12 @@ uint8_t CAN_read(uint8_t adr){
 	return MCP2515_read(adr);
 }
 
-uint8_t recieve_flag = 0;
+uint8_t receive_flag = 0;
 
 void CAN_data_receive(void) {
-	//printf("CAN receive\n");
-	if(recieve_flag){
+	if(receive_flag){
+		receive_flag = 0;
 		uint8_t n = CAN_transmit_complete();
-		//printf("CAN_transmit_complete: \%i\n", n);
 		if (n >= 0){
 			CAN_receive_buffer.id = ((CAN_read(RXBnSIDH + n*0x10)<<3)|(0b11100000 & (CAN_read(RXBnSIDL + n*0x10))>>5));
 			CAN_receive_buffer.length = (CAN_read(RXBnDLC + n*0x10) & 0b00001111);
@@ -90,38 +88,29 @@ void CAN_data_receive(void) {
 				CAN_receive_buffer.data[m] = CAN_read(RXBnDM + m);
 			}
 		}
-		//printf("%i",CAN_receive_buffer.data[0]);
-		//printf("CAN_data_receive: ID %i L: %i DATA: %i %i %i %i %i %i %i %i\n",CAN_receive_buffer.id,CAN_receive_buffer.length,CAN_receive_buffer.data[0],CAN_receive_buffer.data[1],CAN_receive_buffer.data[2],CAN_receive_buffer.data[3],CAN_receive_buffer.data[4],CAN_receive_buffer.data[5],CAN_receive_buffer.data[6],CAN_receive_buffer.data[7]);
-		recieve_flag = 0;
+		printf("CAN_data_receive: \tID %i L: %i DATA: %i %i %i %i %i %i %i %i\n",CAN_receive_buffer.id,CAN_receive_buffer.length,CAN_receive_buffer.data[0],CAN_receive_buffer.data[1],CAN_receive_buffer.data[2],CAN_receive_buffer.data[3],CAN_receive_buffer.data[4],CAN_receive_buffer.data[5],CAN_receive_buffer.data[6],CAN_receive_buffer.data[7]);
+		
 	}
 }
 
 ISR(INT4_vect){//interrupt incoming message
-	//cli();
 	//IF there is a message in inbox 0, flag 1<<0, then if there is a message in inbox 1, flag 1<<1 this
-	//FLAG_new_message = 0b01;
-	recieve_flag = 1;
-	_delay_ms(100);
-	//printf('MSG');
-	//PORTE |= (1<<PE4);
-	//sei();
-	MCP2515_bit_modify(MCP_CANINTF,0xFF,0); //clear all interrupts //CHANGE THIS SO IT JUST CLEARS THE CORRECT INTERRUPTS
+	receive_flag = 1;
 }
 	
 void CAN_interrupt_setup(void){
 	cli();
+
 	// Use PE4 as external interrupt pin
 	DDRE &= ~(1<<PINE4);
 	
-	// Trigger interrupt on any signal change (Compare sec 15.2.2 of Atmega2560 data sheet).
-	//EICRB |= (1<<ISC40);
-	EICRB &= ~(1<<ISC40);
-	EICRB &= ~(1<<ISC41);
-	//EICRB &= ~(1<<ISC41);
+	// Trigger interrupt on ralling edge (Compare sec 15.2.2 of Atmega2560 data sheet).
+	EICRB &= ~(1<<ISC40);	//x0
+	EICRB |= (1<<ISC41);	//1x
 	
 	// Enable INT4 (Compare sec 15.2.3 of Atmega2560 data sheet).
 	EIMSK |= (1<<INT4);
-	
+
 	//Enable global interrupt.
 	sei();
 }
@@ -129,41 +118,22 @@ void CAN_interrupt_setup(void){
 
 uint8_t CAN_transmit_complete(void){
 	
-	
-	// AMUND CAN YOU EXPLAIN WHAT HAPPENS HERE
-	
+	volatile char interrupt = MCP2515_read(MCP_CANINTF);
 
-	volatile char interrupt = MCP2515_read(MCP_CANINTF); ; //MCP2515_read(MCP_CANINTF);
-		/*
-		while((!((1 << MCP_RX0IF) ))&&(!((1 << MCP_RX1IF)))){ 
-			interrupt = MCP2515_read(MCP_CANINTF);
-		}
-		if((1 << MCP_RX0IF)){
-			return 0;
-		}
-		else if((1 << MCP_RX1IF)){
-			return 1;
-		}
-		else{
-			return -1;
-		}
-	
-		*/
-	
-	while((!((1 << MCP_RX0IF) & interrupt))&&(!((1 << MCP_RX1IF)&interrupt))){
+	while((!((1 << MCP_RX0IF) & interrupt))  &&  (!((1 << MCP_RX1IF)&interrupt))){
 		interrupt = MCP2515_read(MCP_CANINTF);
 	}
-	//printf("interrupt: \%i", interrupt);
-	
-	if((1 << MCP_RX0IF)&interrupt){
-		return 0;
-	}
-	else if((1 << MCP_RX1IF)&interrupt){
-		return 1;
-	}
-	else{
-		return -1;
-	}
 	
 
+	if((1 << MCP_RX1IF)&interrupt){
+		FLAG_new_message = 1;
+		MCP2515_bit_modify(MCP_CANINTF,0xFF,1 << MCP_RX1IF); //RETURNS THE POSSITION OF THE ROLLED OVER MESSAGE, IF THERE IS ONE, and clears its interrupt
+		return 1;
+	}else if((1 << MCP_RX0IF)&interrupt){
+		MCP2515_bit_modify(MCP_CANINTF,0xFF,1 << MCP_RX0IF); //clear all interrupts //CHANGE THIS SO IT JUST CLEARS THE CORRECT INTERRUPTS
+		return 0;
+	}else{
+		MCP2515_bit_modify(MCP_CANINTF,0xFF,0); //clear all interrupts //CHANGE THIS SO IT JUST CLEARS THE CORRECT INTERRUPTS
+		return -1;
+	}
 }
