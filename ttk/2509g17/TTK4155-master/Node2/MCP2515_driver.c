@@ -9,21 +9,8 @@
 
 void MCP2515_initialize(void){
 	SPI_initialize();
-	SPI_select();
-	printf("MCP2515_initialize before reset\n");
-		SPI_send(MCP_RESET);
-	printf("MCP2515_initialize after reset\n");
-	
-	SPI_deselect();
-	
-	volatile uint8_t value = MCP2515_read_status();
-	printf(" MCP2515_read_status: %i\n", value);
-	//SPI_select();
-	MCP2515_bit_modify(MCP_CANCTRL,0b11100000,MODE_CONFIG);
-	MCP2515_bit_modify(MCP_CANCTRL,MODE_MASK,MODE_LOOPBACK);
-	MCP2515_bit_modify(MCP_CANCTRL,0b11100000,0x00);
-	SPI_deselect();
-		
+	MCP2515_reset();
+	printf("MCP status: %i\n", MCP2515_read(MCP_CANSTAT));		
 }
 
 void MCP2515_write(uint8_t adr, unsigned char data){
@@ -87,10 +74,11 @@ void MCP2515_bit_modify(uint8_t adr, uint8_t mask, uint8_t data){
 	SPI_deselect();
 }
 
-/*
+
 void MCP2515_reset(void){
+	printf("Resetting MCP2515\n");
 	SPI_select();
 	SPI_send(MCP_RESET);
 	SPI_deselect();
 }
-*/
+

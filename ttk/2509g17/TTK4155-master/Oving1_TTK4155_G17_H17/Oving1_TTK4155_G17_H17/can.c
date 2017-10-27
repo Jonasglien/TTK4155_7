@@ -10,6 +10,7 @@ static CAN_message_t CAN_receive_buffer; //VOLATILE ????????????????????????????
 static CAN_message_t CAN_send_buffer;
 uint8_t FLAG_new_message = 0;
 
+
 void CAN_initialize(void){
 	MCP2515_initialize();
 	int i = 1;
@@ -17,14 +18,14 @@ void CAN_initialize(void){
 	EMCUCR &= ~(1<<ISC2); /*Extended MCU Control Register bit 0 ....turned off? */
 	GICR |= (1<<INT2);   /* General Interrupt Control Register port int2 defined as on?*/
 	MCP2515_bit_modify(CANINTE,0b00000001,0b00000001);
-	CAN_construct_meassage(CAN_ID,CAN_MESSAGE_LENGTH);
+	CAN_construct_message(CAN_ID,CAN_MESSAGE_LENGTH);
 }
 
 CAN_message_t* CAN_message_receive(void){	
 	return &CAN_receive_buffer;
 }
 
-void CAN_construct_meassage(int id, uint8_t length){
+void CAN_construct_message(int id, uint8_t length){
 	CAN_send_buffer.id = id;
 	CAN_send_buffer.length = length;
 	for(uint8_t i = 0; i < length; i++){

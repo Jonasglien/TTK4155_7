@@ -1372,7 +1372,7 @@ END GROUP
  .debug_frame   0x000009e0       0x64 timer.o
  .debug_frame   0x00000a44       0x5c uart.o
 
-.debug_str      0x00000000      0xb47
+.debug_str      0x00000000      0xbb8
  *(.debug_str)
  .debug_str     0x00000000      0x1a6 adc.o
                                 0x1df (size before relaxing)
@@ -1382,19 +1382,19 @@ END GROUP
                                 0x2e2 (size before relaxing)
  .debug_str     0x0000037a       0xd4 input_conversion.o
                                 0x277 (size before relaxing)
- .debug_str     0x0000044e      0x13c main_G17.o
-                                0x344 (size before relaxing)
- .debug_str     0x0000058a       0xaa MCP2515_driver.o
+ .debug_str     0x0000044e      0x1ad main_G17.o
+                                0x34b (size before relaxing)
+ .debug_str     0x000005fb       0xaa MCP2515_driver.o
                                 0x290 (size before relaxing)
- .debug_str     0x00000634      0x34f menu.o
+ .debug_str     0x000006a5      0x34f menu.o
                                 0x5e2 (size before relaxing)
- .debug_str     0x00000983      0x12a oled.o
+ .debug_str     0x000009f4      0x12a oled.o
                                 0x3a3 (size before relaxing)
- .debug_str     0x00000aad        0xb SPI.o
+ .debug_str     0x00000b1e        0xb SPI.o
                                 0x1c3 (size before relaxing)
- .debug_str     0x00000ab8       0x2d timer.o
+ .debug_str     0x00000b29       0x2d timer.o
                                 0x1d7 (size before relaxing)
- .debug_str     0x00000ae5       0x62 uart.o
+ .debug_str     0x00000b56       0x62 uart.o
                                 0x1fc (size before relaxing)
 
 .debug_loc      0x00000000     0x27d9

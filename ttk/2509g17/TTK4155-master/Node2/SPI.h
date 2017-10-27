@@ -20,7 +20,7 @@
 //------------------------------------------//
 //	PIN DEFINITIONS							//
 //------------------------------------------//
-#define		SPI_SS			PB7
+#define		SPI_SS			PB7 // compare physical connection to I/O-board
 #define		SPI_MOSI		PB2
 #define		SPI_MISO		PB3
 #define		SPI_SCK			PB1

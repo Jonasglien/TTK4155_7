@@ -14,9 +14,7 @@
 
 #include "uart.h"
 #include "can.h"
-#include "SPI.h"
-#include "MCP2515.h"
-#include "MCP2515_driver.h"
+
 
 int main(void)
 {
@@ -24,46 +22,37 @@ int main(void)
 			
 	printf("Initializing...\n");
 	
-	//MCP2515_initialize();
+	
 	CAN_initialize();
 	
 
 	//CAN_receive_buffer =  CAN_message_receive();
 	
 	
-	uint8_t temp[8] = {1,2,3,4,5,6,7,8};
-	uint8_t *data = &temp;
+	uint8_t temp[8] = {1,10,3,4,5,6,7,8};
+	uint8_t *data = temp;
 	//CAN_message_send(data);
 	
 	//SPI_test();
 
-	
+	sei();
 
 	uint8_t sendCAN = 1;
 	
-	if(sendCAN){
-		CAN_message_send(data);
-		CAN_data_receive();
-		_delay_ms(1000);
+
+    while(1){
+		if(sendCAN){
+			printf("Sending message!\n");
+			CAN_message_send(data);
+			_delay_ms(100);
+			CAN_data_receive();
+			sendCAN = 1;
+			_delay_ms(200);
+			
+		}
+		
+		
 	}
-	//CAN_message_t *rcv_message = CAN_message_receive();
+	cli();
 
-	//printf("%/i", rcv_message->data);
-    	while(1){
-			//SPI_test();
-
-			
-			//MCP2515_testSPI();
-			
-			
-			
-				//CAN_data_receive();
-				//CAN_message_send(data);
-		//printf("hei ");
-	    //
-		//printf("på deg\n\n");
-		//_delay_ms(500);
-			//unsigned int temp = recieve_UART();
-			//send_UART(temp);
-    	}
 }

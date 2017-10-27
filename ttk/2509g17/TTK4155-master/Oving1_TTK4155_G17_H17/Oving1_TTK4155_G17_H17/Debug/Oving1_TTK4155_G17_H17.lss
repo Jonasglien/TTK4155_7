@@ -21,11 +21,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
   8 .debug_frame  00000aa0  00000000  00000000  0000935c  2**2
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_str    00000b47  00000000  00000000  00009dfc  2**0
+  9 .debug_str    00000bb8  00000000  00000000  00009dfc  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_loc    000027d9  00000000  00000000  0000a943  2**0
+ 10 .debug_loc    000027d9  00000000  00000000  0000a9b4  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_ranges 00000318  00000000  00000000  0000d11c  2**0
+ 11 .debug_ranges 00000318  00000000  00000000  0000d18d  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -232,12 +232,6 @@ Disassembly of section .text:
      44c:	d9 cd       	rjmp	.-1102   	; 0x0 <__vectors>
 
 0000044e <readADC>:
- */ 
-#include "adc.h"
-
-unsigned int readADC(int channel){
-	volatile char *adc_on = (char *) 0x1400;
-	switch(channel){
      44e:	82 30       	cpi	r24, 0x02	; 2
      450:	91 05       	cpc	r25, r1
      452:	71 f0       	breq	.+28     	; 0x470 <readADC+0x22>
@@ -251,19 +245,15 @@ unsigned int readADC(int channel){
      462:	04 97       	sbiw	r24, 0x04	; 4
      464:	69 f0       	breq	.+26     	; 0x480 <readADC+0x32>
      466:	16 c0       	rjmp	.+44     	; 0x494 <readADC+0x46>
-		case 1:	adc_on[0] = 0b00010100; break; // Joystick X_axis
      468:	84 e1       	ldi	r24, 0x14	; 20
      46a:	80 93 00 14 	sts	0x1400, r24
      46e:	0b c0       	rjmp	.+22     	; 0x486 <readADC+0x38>
-		case 2:	adc_on[0] = 0b00010101; break; // Joystick Y_axis
      470:	85 e1       	ldi	r24, 0x15	; 21
      472:	80 93 00 14 	sts	0x1400, r24
      476:	07 c0       	rjmp	.+14     	; 0x486 <readADC+0x38>
-		case 3:	adc_on[0] = 0b00010110; break; // Left Slider
      478:	86 e1       	ldi	r24, 0x16	; 22
      47a:	80 93 00 14 	sts	0x1400, r24
      47e:	03 c0       	rjmp	.+6      	; 0x486 <readADC+0x38>
-		case 4: adc_on[0] = 0b00010111; break; // Right Slider
      480:	87 e1       	ldi	r24, 0x17	; 23
      482:	80 93 00 14 	sts	0x1400, r24
 	#else
@@ -275,75 +265,37 @@ unsigned int readADC(int channel){
      486:	82 e5       	ldi	r24, 0x52	; 82
      488:	8a 95       	dec	r24
      48a:	f1 f7       	brne	.-4      	; 0x488 <readADC+0x3a>
-	//unsigned int val = (unsigned int)adc_on[0];
-	_delay_us(50); //TODO, CHANGE THIS TO THE CODE BELLOW
-	//while(!(PORTA |= BIT_MASK(PINA5)));
-	
-	//printf("Value: %i\n",val);
-	return (unsigned int)adc_on[0];
      48c:	80 91 00 14 	lds	r24, 0x1400
      490:	90 e0       	ldi	r25, 0x00	; 0
      492:	08 95       	ret
-	switch(channel){
-		case 1:	adc_on[0] = 0b00010100; break; // Joystick X_axis
-		case 2:	adc_on[0] = 0b00010101; break; // Joystick Y_axis
-		case 3:	adc_on[0] = 0b00010110; break; // Left Slider
-		case 4: adc_on[0] = 0b00010111; break; // Right Slider
-		default: return 0;
      494:	80 e0       	ldi	r24, 0x00	; 0
      496:	90 e0       	ldi	r25, 0x00	; 0
-	_delay_us(50); //TODO, CHANGE THIS TO THE CODE BELLOW
-	//while(!(PORTA |= BIT_MASK(PINA5)));
-	
-	//printf("Value: %i\n",val);
-	return (unsigned int)adc_on[0];
-}
      498:	08 95       	ret
 
 0000049a <initalize_interrupts>:
- *  Author: pamarton
- */ 
-#include "button_interrupts.h"
-
-void initalize_interrupts(void){
-	BIT_ON(DDRB, PD2);//enable input
      49a:	ba 9a       	sbi	0x17, 2	; 23
-	BIT_ON(DDRB, PD3);
      49c:	bb 9a       	sbi	0x17, 3	; 23
-	
-	BIT_ON(MCUCR, ISC00);//configuring the interrupts for INT0 on rising edge
      49e:	85 b7       	in	r24, 0x35	; 53
      4a0:	81 60       	ori	r24, 0x01	; 1
      4a2:	85 bf       	out	0x35, r24	; 53
-	BIT_ON(MCUCR, ISC01);
      4a4:	85 b7       	in	r24, 0x35	; 53
      4a6:	82 60       	ori	r24, 0x02	; 2
      4a8:	85 bf       	out	0x35, r24	; 53
-	
-	BIT_ON(MCUCR, ISC10);//configuring the interrupts for INT1 on rising edge
      4aa:	85 b7       	in	r24, 0x35	; 53
      4ac:	84 60       	ori	r24, 0x04	; 4
      4ae:	85 bf       	out	0x35, r24	; 53
-	BIT_ON(MCUCR, ISC11);
      4b0:	85 b7       	in	r24, 0x35	; 53
      4b2:	88 60       	ori	r24, 0x08	; 8
      4b4:	85 bf       	out	0x35, r24	; 53
-	
-	BIT_ON(GICR, INT0);//enabling the interrupts INT0 and INT1 in the memory ???????????????????? 21.09.17
      4b6:	8b b7       	in	r24, 0x3b	; 59
      4b8:	80 64       	ori	r24, 0x40	; 64
      4ba:	8b bf       	out	0x3b, r24	; 59
-	BIT_ON(GICR, INT1);
      4bc:	8b b7       	in	r24, 0x3b	; 59
      4be:	80 68       	ori	r24, 0x80	; 128
      4c0:	8b bf       	out	0x3b, r24	; 59
      4c2:	08 95       	ret
 
 000004c4 <__vector_1>:
-}
-
-
-ISR(INT0_vect){//interrupt button Right
      4c4:	1f 92       	push	r1
      4c6:	0f 92       	push	r0
      4c8:	0f b6       	in	r0, 0x3f	; 63
@@ -361,11 +313,7 @@ ISR(INT0_vect){//interrupt button Right
      4e0:	bf 93       	push	r27
      4e2:	ef 93       	push	r30
      4e4:	ff 93       	push	r31
-	//printf("Right button pressed, printing values:\t\t");
-	//printf("X: %i\tY: %i\tL: %i\tR: %i\n",read_control_input('X'),read_control_input('Y'),read_control_input('L'),read_control_input('R'));//REMOVE THIS AND THE #INCLUDE "input_convercions.h" in button_interrupts.h
-	menu_right_button_flag();//sets the interupt flag
      4e6:	14 d4       	rcall	.+2088   	; 0xd10 <menu_right_button_flag>
-}
      4e8:	ff 91       	pop	r31
      4ea:	ef 91       	pop	r30
      4ec:	bf 91       	pop	r27
@@ -385,7 +333,6 @@ ISR(INT0_vect){//interrupt button Right
      508:	18 95       	reti
 
 0000050a <__vector_2>:
-ISR(INT1_vect){//interrupt button Left
      50a:	1f 92       	push	r1
      50c:	0f 92       	push	r0
      50e:	0f b6       	in	r0, 0x3f	; 63
@@ -403,7 +350,6 @@ ISR(INT1_vect){//interrupt button Left
      526:	bf 93       	push	r27
      528:	ef 93       	push	r30
      52a:	ff 93       	push	r31
-	menu_left_button_flag();//sets the interrupt flag
      52c:	ed d3       	rcall	.+2010   	; 0xd08 <menu_left_button_flag>
      52e:	ff 91       	pop	r31
      530:	ef 91       	pop	r30
@@ -424,12 +370,6 @@ ISR(INT1_vect){//interrupt button Left
      54e:	18 95       	reti
 
 00000550 <CAN_construct_meassage>:
-	
-}
-
-uint8_t CAN_read(uint8_t adr){
-	return MCP2515_read(adr);
-}
      550:	90 93 b4 02 	sts	0x02B4, r25
      554:	80 93 b3 02 	sts	0x02B3, r24
      558:	60 93 b5 02 	sts	0x02B5, r22
@@ -464,27 +404,16 @@ uint8_t CAN_read(uint8_t adr){
      590:	08 95       	ret
 
 00000592 <__vector_3>:
-	MCP2515_bit_modify(MCP_CANINTF,0xFF,0); //clear all interrupts //CHANGE THIS SO IT JUST CLEARS THE CORRECT INTERRUPTS
-}
-
-
-
-ISR(INT2_vect){//interrupt incomming message
      592:	1f 92       	push	r1
      594:	0f 92       	push	r0
      596:	0f b6       	in	r0, 0x3f	; 63
      598:	0f 92       	push	r0
      59a:	11 24       	eor	r1, r1
      59c:	8f 93       	push	r24
-	cli();
      59e:	f8 94       	cli
-	//IF there is a message in inbox 0, flag 1<<0, then if there is a message in inbox 1, flag 1<<1 this
-	FLAG_new_message = 0b01;
      5a0:	81 e0       	ldi	r24, 0x01	; 1
      5a2:	80 93 b2 02 	sts	0x02B2, r24
-	sei();
      5a6:	78 94       	sei
-}
      5a8:	8f 91       	pop	r24
      5aa:	0f 90       	pop	r0
      5ac:	0f be       	out	0x3f, r0	; 63
@@ -493,20 +422,12 @@ ISR(INT2_vect){//interrupt incomming message
      5b2:	18 95       	reti
 
 000005b4 <calibrate_joystick>:
-	ref_R = read_control_input('R');
-	printf("Calibration values: \tcal_X: %i\tcal_Y:%i\n",calibrate_x,calibrate_y);
-	printf("Reference Values: \tX %i\tY %i\tL %i\tR %i\t\n",ref_X,ref_Y,ref_L,ref_R);
-}
-
-void calibrate_joystick(void){
      5b4:	0f 93       	push	r16
      5b6:	1f 93       	push	r17
      5b8:	cf 93       	push	r28
      5ba:	df 93       	push	r29
      5bc:	c4 e6       	ldi	r28, 0x64	; 100
      5be:	d0 e0       	ldi	r29, 0x00	; 0
-	for (int i = 0; i < CALIBRATE_READINGS; i++){
-		calibrate_x += 127 - readADC(1);
      5c0:	00 91 c8 02 	lds	r16, 0x02C8
      5c4:	10 91 c9 02 	lds	r17, 0x02C9
      5c8:	81 e0       	ldi	r24, 0x01	; 1
@@ -518,7 +439,6 @@ void calibrate_joystick(void){
      5d4:	19 0b       	sbc	r17, r25
      5d6:	10 93 c9 02 	sts	0x02C9, r17
      5da:	00 93 c8 02 	sts	0x02C8, r16
-		calibrate_y += 127 - readADC(2);
      5de:	00 91 c6 02 	lds	r16, 0x02C6
      5e2:	10 91 c7 02 	lds	r17, 0x02C7
      5e6:	82 e0       	ldi	r24, 0x02	; 2
@@ -531,18 +451,8 @@ void calibrate_joystick(void){
      5f4:	10 93 c7 02 	sts	0x02C7, r17
      5f8:	00 93 c6 02 	sts	0x02C6, r16
      5fc:	21 97       	sbiw	r28, 0x01	; 1
-	printf("Calibration values: \tcal_X: %i\tcal_Y:%i\n",calibrate_x,calibrate_y);
-	printf("Reference Values: \tX %i\tY %i\tL %i\tR %i\t\n",ref_X,ref_Y,ref_L,ref_R);
-}
-
-void calibrate_joystick(void){
-	for (int i = 0; i < CALIBRATE_READINGS; i++){
      5fe:	20 97       	sbiw	r28, 0x00	; 0
      600:	f9 f6       	brne	.-66     	; 0x5c0 <calibrate_joystick+0xc>
-		calibrate_x += 127 - readADC(1);
-		calibrate_y += 127 - readADC(2);
-	}
-	calibrate_x /= CALIBRATE_READINGS;
      602:	80 91 c8 02 	lds	r24, 0x02C8
      606:	90 91 c9 02 	lds	r25, 0x02C9
      60a:	24 e6       	ldi	r18, 0x64	; 100
@@ -551,14 +461,12 @@ void calibrate_joystick(void){
      610:	0e 94 56 0e 	call	0x1cac	; 0x1cac <__divmodhi4>
      614:	70 93 c9 02 	sts	0x02C9, r23
      618:	60 93 c8 02 	sts	0x02C8, r22
-	calibrate_y /= CALIBRATE_READINGS;
      61c:	80 91 c6 02 	lds	r24, 0x02C6
      620:	90 91 c7 02 	lds	r25, 0x02C7
      624:	b9 01       	movw	r22, r18
      626:	0e 94 56 0e 	call	0x1cac	; 0x1cac <__divmodhi4>
      62a:	70 93 c7 02 	sts	0x02C7, r23
      62e:	60 93 c6 02 	sts	0x02C6, r22
-}
      632:	df 91       	pop	r29
      634:	cf 91       	pop	r28
      636:	1f 91       	pop	r17
@@ -566,12 +474,6 @@ void calibrate_joystick(void){
      63a:	08 95       	ret
 
 0000063c <signal_to_range>:
-	}
-	return 0;
-}
-
-
-int signal_to_range(int signal, int signal_min, int signal_max, int output_min, int output_max, int calibrate, int reference, int step){
      63c:	2f 92       	push	r2
      63e:	3f 92       	push	r3
      640:	4f 92       	push	r4
@@ -604,10 +506,6 @@ int signal_to_range(int signal, int signal_min, int signal_max, int output_min, 
      676:	2d 83       	std	Y+5, r18	; 0x05
      678:	18 01       	movw	r2, r16
      67a:	85 01       	movw	r16, r10
-	
-	// Linear interpolation to map integer range of the converted joystick/slider signal [signal_min, signal_max] to [output_min, output_max]. 
-	// calibrate is an offset which is determined during the auto-calibration process at initialization.
-	int new_signal = (int)((double)output_min + (double)(signal + calibrate - signal_min)*(double)(output_max-output_min)/(double)(signal_max-signal_min));
      67c:	b9 01       	movw	r22, r18
      67e:	88 27       	eor	r24, r24
      680:	77 fd       	sbrc	r23, 7
@@ -669,18 +567,12 @@ int signal_to_range(int signal, int signal_min, int signal_max, int output_min, 
      6fc:	b4 01       	movw	r22, r8
      6fe:	0e 94 40 0c 	call	0x1880	; 0x1880 <__addsf3>
      702:	0e 94 10 0d 	call	0x1a20	; 0x1a20 <__fixsfsi>
-	
-		
-	
-	if (new_signal >= output_max - step){
      706:	c1 01       	movw	r24, r2
      708:	80 1b       	sub	r24, r16
      70a:	91 0b       	sbc	r25, r17
      70c:	68 17       	cp	r22, r24
      70e:	79 07       	cpc	r23, r25
      710:	74 f5       	brge	.+92     	; 0x76e <signal_to_range+0x132>
-		reference = output_max;
-	}else if(new_signal <= output_min + step){
      712:	8d 81       	ldd	r24, Y+5	; 0x05
      714:	9e 81       	ldd	r25, Y+6	; 0x06
      716:	80 0f       	add	r24, r16
@@ -688,10 +580,6 @@ int signal_to_range(int signal, int signal_min, int signal_max, int output_min, 
      71a:	86 17       	cp	r24, r22
      71c:	97 07       	cpc	r25, r23
      71e:	4c f5       	brge	.+82     	; 0x772 <signal_to_range+0x136>
-		reference = output_min;
-	}else{
-		while (!(((new_signal < reference + step) && (new_signal > reference - step)))){
-			if((new_signal >= reference + step/2)){
      720:	f8 01       	movw	r30, r16
      722:	11 23       	and	r17, r17
      724:	0c f4       	brge	.+2      	; 0x728 <signal_to_range+0xec>
@@ -708,29 +596,19 @@ int signal_to_range(int signal, int signal_min, int signal_max, int output_min, 
      73a:	64 17       	cp	r22, r20
      73c:	75 07       	cpc	r23, r21
      73e:	14 f0       	brlt	.+4      	; 0x744 <signal_to_range+0x108>
-				reference += step;
      740:	69 01       	movw	r12, r18
      742:	0b c0       	rjmp	.+22     	; 0x75a <signal_to_range+0x11e>
-			}
-			else if (new_signal <= reference - step/2){
      744:	c6 01       	movw	r24, r12
      746:	8e 1b       	sub	r24, r30
      748:	9f 0b       	sbc	r25, r31
      74a:	86 17       	cp	r24, r22
      74c:	97 07       	cpc	r25, r23
      74e:	14 f0       	brlt	.+4      	; 0x754 <signal_to_range+0x118>
-				reference -= step;
      750:	c0 1a       	sub	r12, r16
      752:	d1 0a       	sbc	r13, r17
      754:	c6 01       	movw	r24, r12
      756:	80 1b       	sub	r24, r16
      758:	91 0b       	sbc	r25, r17
-	if (new_signal >= output_max - step){
-		reference = output_max;
-	}else if(new_signal <= output_min + step){
-		reference = output_min;
-	}else{
-		while (!(((new_signal < reference + step) && (new_signal > reference - step)))){
      75a:	96 01       	movw	r18, r12
      75c:	20 0f       	add	r18, r16
      75e:	31 1f       	adc	r19, r17
@@ -741,24 +619,10 @@ int signal_to_range(int signal, int signal_min, int signal_max, int output_min, 
      768:	97 07       	cpc	r25, r23
      76a:	14 f7       	brge	.-60     	; 0x730 <signal_to_range+0xf4>
      76c:	04 c0       	rjmp	.+8      	; 0x776 <signal_to_range+0x13a>
-	int new_signal = (int)((double)output_min + (double)(signal + calibrate - signal_min)*(double)(output_max-output_min)/(double)(signal_max-signal_min));
-	
-		
-	
-	if (new_signal >= output_max - step){
-		reference = output_max;
      76e:	61 01       	movw	r12, r2
      770:	02 c0       	rjmp	.+4      	; 0x776 <signal_to_range+0x13a>
-	}else if(new_signal <= output_min + step){
-		reference = output_min;
      772:	cd 80       	ldd	r12, Y+5	; 0x05
      774:	de 80       	ldd	r13, Y+6	; 0x06
-			 
-		}
-	}
-	//printf("VALUE: \t%i\t%i\t%i\n",signal,new_signal, reference);
-	return reference;
-}
      776:	c6 01       	movw	r24, r12
      778:	26 96       	adiw	r28, 0x06	; 6
      77a:	0f b6       	in	r0, 0x3f	; 63
@@ -787,12 +651,6 @@ int signal_to_range(int signal, int signal_min, int signal_max, int output_min, 
      7a8:	08 95       	ret
 
 000007aa <read_control_input>:
-	calibrate_y /= CALIBRATE_READINGS;
-}
-
-
-
-int read_control_input(char channel){
      7aa:	af 92       	push	r10
      7ac:	bf 92       	push	r11
      7ae:	cf 92       	push	r12
@@ -801,7 +659,6 @@ int read_control_input(char channel){
      7b4:	ff 92       	push	r15
      7b6:	0f 93       	push	r16
      7b8:	1f 93       	push	r17
-	switch(channel){
      7ba:	82 35       	cpi	r24, 0x52	; 82
      7bc:	09 f4       	brne	.+2      	; 0x7c0 <read_control_input+0x16>
      7be:	6e c0       	rjmp	.+220    	; 0x89c <read_control_input+0xf2>
@@ -815,8 +672,6 @@ int read_control_input(char channel){
      7ce:	89 35       	cpi	r24, 0x59	; 89
      7d0:	19 f1       	breq	.+70     	; 0x818 <read_control_input+0x6e>
      7d2:	84 c0       	rjmp	.+264    	; 0x8dc <read_control_input+0x132>
-		case 'X': 
-			ref_X = signal_to_range(readADC(1), SIGNAL_MIN, SIGNAL_MAX, RANGE_MIN, RANGE_MAX, calibrate_x, ref_X, RESOLUTION); 
      7d4:	c0 90 c4 02 	lds	r12, 0x02C4
      7d8:	d0 90 c5 02 	lds	r13, 0x02C5
      7dc:	e0 90 c8 02 	lds	r14, 0x02C8
@@ -840,12 +695,9 @@ int read_control_input(char channel){
      804:	1b df       	rcall	.-458    	; 0x63c <signal_to_range>
      806:	90 93 c5 02 	sts	0x02C5, r25
      80a:	80 93 c4 02 	sts	0x02C4, r24
-			return ref_X;
      80e:	80 91 c4 02 	lds	r24, 0x02C4
      812:	90 91 c5 02 	lds	r25, 0x02C5
      816:	64 c0       	rjmp	.+200    	; 0x8e0 <read_control_input+0x136>
-		case 'Y': 
-			ref_Y = signal_to_range(readADC(2), SIGNAL_MIN, SIGNAL_MAX, RANGE_MIN, RANGE_MAX, calibrate_y, ref_Y, RESOLUTION);
      818:	c0 90 c2 02 	lds	r12, 0x02C2
      81c:	d0 90 c3 02 	lds	r13, 0x02C3
      820:	e0 90 c6 02 	lds	r14, 0x02C6
@@ -869,12 +721,9 @@ int read_control_input(char channel){
      848:	f9 de       	rcall	.-526    	; 0x63c <signal_to_range>
      84a:	90 93 c3 02 	sts	0x02C3, r25
      84e:	80 93 c2 02 	sts	0x02C2, r24
-			return ref_Y;
      852:	80 91 c2 02 	lds	r24, 0x02C2
      856:	90 91 c3 02 	lds	r25, 0x02C3
      85a:	42 c0       	rjmp	.+132    	; 0x8e0 <read_control_input+0x136>
-		case 'L':
-		ref_L = signal_to_range(readADC(3), SIGNAL_MIN, SIGNAL_MAX, 0, RANGE_MAX, 0, ref_L, RESOLUTION);
      85c:	c0 90 c0 02 	lds	r12, 0x02C0
      860:	d0 90 c1 02 	lds	r13, 0x02C1
      864:	83 e0       	ldi	r24, 0x03	; 3
@@ -898,12 +747,9 @@ int read_control_input(char channel){
      888:	d9 de       	rcall	.-590    	; 0x63c <signal_to_range>
      88a:	90 93 c1 02 	sts	0x02C1, r25
      88e:	80 93 c0 02 	sts	0x02C0, r24
-		return ref_L;
      892:	80 91 c0 02 	lds	r24, 0x02C0
      896:	90 91 c1 02 	lds	r25, 0x02C1
      89a:	22 c0       	rjmp	.+68     	; 0x8e0 <read_control_input+0x136>
-		case 'R': 
-			ref_R = signal_to_range(readADC(4), SIGNAL_MIN, SIGNAL_MAX, 0, RANGE_MAX, 0, ref_R, RESOLUTION);
      89c:	c0 90 be 02 	lds	r12, 0x02BE
      8a0:	d0 90 bf 02 	lds	r13, 0x02BF
      8a4:	84 e0       	ldi	r24, 0x04	; 4
@@ -927,15 +773,11 @@ int read_control_input(char channel){
      8c8:	b9 de       	rcall	.-654    	; 0x63c <signal_to_range>
      8ca:	90 93 bf 02 	sts	0x02BF, r25
      8ce:	80 93 be 02 	sts	0x02BE, r24
-			return ref_R;
      8d2:	80 91 be 02 	lds	r24, 0x02BE
      8d6:	90 91 bf 02 	lds	r25, 0x02BF
      8da:	02 c0       	rjmp	.+4      	; 0x8e0 <read_control_input+0x136>
-	}
-	return 0;
      8dc:	80 e0       	ldi	r24, 0x00	; 0
      8de:	90 e0       	ldi	r25, 0x00	; 0
-}
      8e0:	1f 91       	pop	r17
      8e2:	0f 91       	pop	r16
      8e4:	ff 90       	pop	r15
@@ -947,34 +789,23 @@ int read_control_input(char channel){
      8f0:	08 95       	ret
 
 000008f2 <initialize_control_input>:
-
-
-
-
-void initialize_control_input(void){
-	calibrate_joystick();
      8f2:	60 de       	rcall	.-832    	; 0x5b4 <calibrate_joystick>
-	ref_X = read_control_input('X');
      8f4:	88 e5       	ldi	r24, 0x58	; 88
      8f6:	59 df       	rcall	.-334    	; 0x7aa <read_control_input>
      8f8:	90 93 c5 02 	sts	0x02C5, r25
      8fc:	80 93 c4 02 	sts	0x02C4, r24
-	ref_Y = read_control_input('Y');
      900:	89 e5       	ldi	r24, 0x59	; 89
      902:	53 df       	rcall	.-346    	; 0x7aa <read_control_input>
      904:	90 93 c3 02 	sts	0x02C3, r25
      908:	80 93 c2 02 	sts	0x02C2, r24
-	ref_L = read_control_input('L');
      90c:	8c e4       	ldi	r24, 0x4C	; 76
      90e:	4d df       	rcall	.-358    	; 0x7aa <read_control_input>
      910:	90 93 c1 02 	sts	0x02C1, r25
      914:	80 93 c0 02 	sts	0x02C0, r24
-	ref_R = read_control_input('R');
      918:	82 e5       	ldi	r24, 0x52	; 82
      91a:	47 df       	rcall	.-370    	; 0x7aa <read_control_input>
      91c:	90 93 bf 02 	sts	0x02BF, r25
      920:	80 93 be 02 	sts	0x02BE, r24
-	printf("Calibration values: \tcal_X: %i\tcal_Y:%i\n",calibrate_x,calibrate_y);
      924:	20 91 c6 02 	lds	r18, 0x02C6
      928:	30 91 c7 02 	lds	r19, 0x02C7
      92c:	80 91 c8 02 	lds	r24, 0x02C8
@@ -988,7 +819,6 @@ void initialize_control_input(void){
      940:	9f 93       	push	r25
      942:	8f 93       	push	r24
      944:	0e 94 0c 0f 	call	0x1e18	; 0x1e18 <printf>
-	printf("Reference Values: \tX %i\tY %i\tL %i\tR %i\t\n",ref_X,ref_Y,ref_L,ref_R);
      948:	60 91 be 02 	lds	r22, 0x02BE
      94c:	70 91 bf 02 	lds	r23, 0x02BF
      950:	40 91 c0 02 	lds	r20, 0x02C0
@@ -1340,426 +1170,244 @@ int main(void)
      b6a:	fe cf       	rjmp	.-4      	; 0xb68 <main+0xe>
 
 00000b6c <MCP2515_bit_modify>:
-	uint8_t recieved_status = SPI_read();
-	SPI_deselect();
-	return recieved_status;
-}
-
-void MCP2515_bit_modify(uint8_t adr, uint8_t mask, uint8_t data){
      b6c:	1f 93       	push	r17
      b6e:	cf 93       	push	r28
      b70:	df 93       	push	r29
      b72:	18 2f       	mov	r17, r24
      b74:	d6 2f       	mov	r29, r22
      b76:	c4 2f       	mov	r28, r20
-	SPI_select();
      b78:	39 d6       	rcall	.+3186   	; 0x17ec <SPI_select>
-	SPI_send(MCP_BITMOD);
      b7a:	85 e0       	ldi	r24, 0x05	; 5
      b7c:	33 d6       	rcall	.+3174   	; 0x17e4 <SPI_send>
-	SPI_send(adr);
      b7e:	81 2f       	mov	r24, r17
      b80:	31 d6       	rcall	.+3170   	; 0x17e4 <SPI_send>
-	SPI_send(mask);
      b82:	8d 2f       	mov	r24, r29
      b84:	2f d6       	rcall	.+3166   	; 0x17e4 <SPI_send>
-	SPI_send(data);
      b86:	8c 2f       	mov	r24, r28
      b88:	2d d6       	rcall	.+3162   	; 0x17e4 <SPI_send>
-	SPI_deselect();
      b8a:	32 d6       	rcall	.+3172   	; 0x17f0 <SPI_deselect>
-}
      b8c:	df 91       	pop	r29
      b8e:	cf 91       	pop	r28
      b90:	1f 91       	pop	r17
      b92:	08 95       	ret
 
 00000b94 <MCP2515_initialize>:
- */ 
-
-#include "MCP2515_driver.h"
-
-void MCP2515_initialize(void){
-	SPI_initialize();
      b94:	2f d6       	rcall	.+3166   	; 0x17f4 <SPI_initialize>
- 	SPI_select();
      b96:	2a d6       	rcall	.+3156   	; 0x17ec <SPI_select>
-	SPI_send(MCP_RESET);
      b98:	80 ec       	ldi	r24, 0xC0	; 192
      b9a:	24 d6       	rcall	.+3144   	; 0x17e4 <SPI_send>
-	SPI_deselect();
      b9c:	29 d6       	rcall	.+3154   	; 0x17f0 <SPI_deselect>
-	SPI_select();
      b9e:	26 d6       	rcall	.+3148   	; 0x17ec <SPI_select>
-	//MCP2515_bit_modify(MCP_CANCTRL,0b11100000,MODE_CONFIG);
-	MCP2515_bit_modify(MCP_CANCTRL,MODE_MASK,MODE_LOOPBACK);
      ba0:	40 e4       	ldi	r20, 0x40	; 64
      ba2:	60 ee       	ldi	r22, 0xE0	; 224
      ba4:	8f e0       	ldi	r24, 0x0F	; 15
      ba6:	e2 df       	rcall	.-60     	; 0xb6c <MCP2515_bit_modify>
-	//MCP2515_bit_modify(MCP_CANCTRL,0b11100000,0x00);
-	SPI_deselect();
      ba8:	23 c6       	rjmp	.+3142   	; 0x17f0 <SPI_deselect>
      baa:	08 95       	ret
 
 00000bac <initialize_menu>:
-menu mainmenu_0;//Highscore
-menu mainmenu_1;
-menu mainmenu_2;
-//menu mainmenu_3;
-
-void initialize_menu(void){
      bac:	cf 93       	push	r28
      bae:	df 93       	push	r29
-uint8_t left_button_flag = 0;
-
-void setup_menu(menu * new_menu, menu * ptr_sib_down, menu * ptr_parent, menu * ptr_child, int n_sib, PGM_P title){
-	//new_menu->ptr_self = new_menu;
-	//new_menu->ptr_sib_up = ptr_sib_up;
-	new_menu->ptr_sib_down = ptr_sib_down;
      bb0:	c3 e2       	ldi	r28, 0x23	; 35
      bb2:	d3 e0       	ldi	r29, 0x03	; 3
      bb4:	d0 93 0a 03 	sts	0x030A, r29
      bb8:	c0 93 09 03 	sts	0x0309, r28
-	new_menu->ptr_child = ptr_child;
      bbc:	10 92 0c 03 	sts	0x030C, r1
      bc0:	10 92 0b 03 	sts	0x030B, r1
-	new_menu->ptr_parent = ptr_parent;
      bc4:	10 92 0e 03 	sts	0x030E, r1
      bc8:	10 92 0d 03 	sts	0x030D, r1
-	
-	new_menu->title = title;
      bcc:	e5 e0       	ldi	r30, 0x05	; 5
      bce:	f3 e0       	ldi	r31, 0x03	; 3
      bd0:	8a ee       	ldi	r24, 0xEA	; 234
      bd2:	90 e0       	ldi	r25, 0x00	; 0
      bd4:	91 83       	std	Z+1, r25	; 0x01
      bd6:	80 83       	st	Z, r24
-	new_menu->n_sib = n_sib;
      bd8:	83 e0       	ldi	r24, 0x03	; 3
      bda:	90 e0       	ldi	r25, 0x00	; 0
      bdc:	90 93 08 03 	sts	0x0308, r25
      be0:	80 93 07 03 	sts	0x0307, r24
-uint8_t left_button_flag = 0;
-
-void setup_menu(menu * new_menu, menu * ptr_sib_down, menu * ptr_parent, menu * ptr_child, int n_sib, PGM_P title){
-	//new_menu->ptr_self = new_menu;
-	//new_menu->ptr_sib_up = ptr_sib_up;
-	new_menu->ptr_sib_down = ptr_sib_down;
      be4:	27 ed       	ldi	r18, 0xD7	; 215
      be6:	32 e0       	ldi	r19, 0x02	; 2
      be8:	30 93 28 03 	sts	0x0328, r19
      bec:	20 93 27 03 	sts	0x0327, r18
-	new_menu->ptr_child = ptr_child;
      bf0:	6f e0       	ldi	r22, 0x0F	; 15
      bf2:	73 e0       	ldi	r23, 0x03	; 3
      bf4:	70 93 2a 03 	sts	0x032A, r23
      bf8:	60 93 29 03 	sts	0x0329, r22
-	new_menu->ptr_parent = ptr_parent;
      bfc:	10 92 2c 03 	sts	0x032C, r1
      c00:	10 92 2b 03 	sts	0x032B, r1
-	
-	new_menu->title = title;
      c04:	44 ee       	ldi	r20, 0xE4	; 228
      c06:	50 e0       	ldi	r21, 0x00	; 0
      c08:	59 83       	std	Y+1, r21	; 0x01
      c0a:	48 83       	st	Y, r20
-	new_menu->n_sib = n_sib;
      c0c:	90 93 26 03 	sts	0x0326, r25
      c10:	80 93 25 03 	sts	0x0325, r24
-uint8_t left_button_flag = 0;
-
-void setup_menu(menu * new_menu, menu * ptr_sib_down, menu * ptr_parent, menu * ptr_child, int n_sib, PGM_P title){
-	//new_menu->ptr_self = new_menu;
-	//new_menu->ptr_sib_up = ptr_sib_up;
-	new_menu->ptr_sib_down = ptr_sib_down;
      c14:	f0 93 dc 02 	sts	0x02DC, r31
      c18:	e0 93 db 02 	sts	0x02DB, r30
-	new_menu->ptr_child = ptr_child;
      c1c:	c1 ef       	ldi	r28, 0xF1	; 241
      c1e:	d2 e0       	ldi	r29, 0x02	; 2
      c20:	d0 93 de 02 	sts	0x02DE, r29
      c24:	c0 93 dd 02 	sts	0x02DD, r28
-	new_menu->ptr_parent = ptr_parent;
      c28:	10 92 e0 02 	sts	0x02E0, r1
      c2c:	10 92 df 02 	sts	0x02DF, r1
-	
-	new_menu->title = title;
      c30:	4c ed       	ldi	r20, 0xDC	; 220
      c32:	50 e0       	ldi	r21, 0x00	; 0
      c34:	d9 01       	movw	r26, r18
      c36:	4d 93       	st	X+, r20
      c38:	5c 93       	st	X, r21
-	new_menu->n_sib = n_sib;
      c3a:	90 93 da 02 	sts	0x02DA, r25
      c3e:	80 93 d9 02 	sts	0x02D9, r24
-uint8_t left_button_flag = 0;
-
-void setup_menu(menu * new_menu, menu * ptr_sib_down, menu * ptr_parent, menu * ptr_child, int n_sib, PGM_P title){
-	//new_menu->ptr_self = new_menu;
-	//new_menu->ptr_sib_up = ptr_sib_up;
-	new_menu->ptr_sib_down = ptr_sib_down;
      c42:	2b ef       	ldi	r18, 0xFB	; 251
      c44:	32 e0       	ldi	r19, 0x02	; 2
      c46:	30 93 f6 02 	sts	0x02F6, r19
      c4a:	20 93 f5 02 	sts	0x02F5, r18
-	new_menu->ptr_child = ptr_child;
      c4e:	10 92 f8 02 	sts	0x02F8, r1
      c52:	10 92 f7 02 	sts	0x02F7, r1
-	new_menu->ptr_parent = ptr_parent;
      c56:	f0 93 fa 02 	sts	0x02FA, r31
      c5a:	e0 93 f9 02 	sts	0x02F9, r30
-	
-	new_menu->title = title;
      c5e:	86 ed       	ldi	r24, 0xD6	; 214
      c60:	90 e0       	ldi	r25, 0x00	; 0
      c62:	99 83       	std	Y+1, r25	; 0x01
      c64:	88 83       	st	Y, r24
-	new_menu->n_sib = n_sib;
      c66:	82 e0       	ldi	r24, 0x02	; 2
      c68:	90 e0       	ldi	r25, 0x00	; 0
      c6a:	90 93 f4 02 	sts	0x02F4, r25
      c6e:	80 93 f3 02 	sts	0x02F3, r24
-uint8_t left_button_flag = 0;
-
-void setup_menu(menu * new_menu, menu * ptr_sib_down, menu * ptr_parent, menu * ptr_child, int n_sib, PGM_P title){
-	//new_menu->ptr_self = new_menu;
-	//new_menu->ptr_sib_up = ptr_sib_up;
-	new_menu->ptr_sib_down = ptr_sib_down;
      c72:	d0 93 00 03 	sts	0x0300, r29
      c76:	c0 93 ff 02 	sts	0x02FF, r28
-	new_menu->ptr_child = ptr_child;
      c7a:	10 92 02 03 	sts	0x0302, r1
      c7e:	10 92 01 03 	sts	0x0301, r1
-	new_menu->ptr_parent = ptr_parent;
      c82:	f0 93 04 03 	sts	0x0304, r31
      c86:	e0 93 03 03 	sts	0x0303, r30
-	
-	new_menu->title = title;
      c8a:	4d ec       	ldi	r20, 0xCD	; 205
      c8c:	50 e0       	ldi	r21, 0x00	; 0
      c8e:	d9 01       	movw	r26, r18
      c90:	4d 93       	st	X+, r20
      c92:	5c 93       	st	X, r21
-	new_menu->n_sib = n_sib;
      c94:	90 93 fe 02 	sts	0x02FE, r25
      c98:	80 93 fd 02 	sts	0x02FD, r24
-uint8_t left_button_flag = 0;
-
-void setup_menu(menu * new_menu, menu * ptr_sib_down, menu * ptr_parent, menu * ptr_child, int n_sib, PGM_P title){
-	//new_menu->ptr_self = new_menu;
-	//new_menu->ptr_sib_up = ptr_sib_up;
-	new_menu->ptr_sib_down = ptr_sib_down;
      c9c:	c9 e1       	ldi	r28, 0x19	; 25
      c9e:	d3 e0       	ldi	r29, 0x03	; 3
      ca0:	d0 93 14 03 	sts	0x0314, r29
      ca4:	c0 93 13 03 	sts	0x0313, r28
-	new_menu->ptr_child = ptr_child;
      ca8:	10 92 16 03 	sts	0x0316, r1
      cac:	10 92 15 03 	sts	0x0315, r1
-	new_menu->ptr_parent = ptr_parent;
      cb0:	f0 93 18 03 	sts	0x0318, r31
      cb4:	e0 93 17 03 	sts	0x0317, r30
-	
-	new_menu->title = title;
      cb8:	22 ec       	ldi	r18, 0xC2	; 194
      cba:	30 e0       	ldi	r19, 0x00	; 0
      cbc:	db 01       	movw	r26, r22
      cbe:	2d 93       	st	X+, r18
      cc0:	3c 93       	st	X, r19
-	new_menu->n_sib = n_sib;
      cc2:	90 93 12 03 	sts	0x0312, r25
      cc6:	80 93 11 03 	sts	0x0311, r24
-uint8_t left_button_flag = 0;
-
-void setup_menu(menu * new_menu, menu * ptr_sib_down, menu * ptr_parent, menu * ptr_child, int n_sib, PGM_P title){
-	//new_menu->ptr_self = new_menu;
-	//new_menu->ptr_sib_up = ptr_sib_up;
-	new_menu->ptr_sib_down = ptr_sib_down;
      cca:	70 93 1e 03 	sts	0x031E, r23
      cce:	60 93 1d 03 	sts	0x031D, r22
-	new_menu->ptr_child = ptr_child;
      cd2:	10 92 20 03 	sts	0x0320, r1
      cd6:	10 92 1f 03 	sts	0x031F, r1
-	new_menu->ptr_parent = ptr_parent;
      cda:	f0 93 22 03 	sts	0x0322, r31
      cde:	e0 93 21 03 	sts	0x0321, r30
-	
-	new_menu->title = title;
      ce2:	28 eb       	ldi	r18, 0xB8	; 184
      ce4:	30 e0       	ldi	r19, 0x00	; 0
      ce6:	39 83       	std	Y+1, r19	; 0x01
      ce8:	28 83       	st	Y, r18
-	new_menu->n_sib = n_sib;
      cea:	90 93 1c 03 	sts	0x031C, r25
      cee:	80 93 1b 03 	sts	0x031B, r24
-
-	setup_menu(&debug_0,&debug_1,&mainmenu_0,NULL,2,debug_entry_0);
-	setup_menu(&debug_1,&debug_0,&mainmenu_0,NULL,2,debug_entry_1);
-	
-	// current_head is the top entry of the current menu.
-	current_head = &mainmenu_0;
      cf2:	f0 93 d4 02 	sts	0x02D4, r31
      cf6:	e0 93 d3 02 	sts	0x02D3, r30
-	
-	// current_selected is the selected menu entry of the current menu.
-	current_selected = &mainmenu_0;
      cfa:	f0 93 d6 02 	sts	0x02D6, r31
      cfe:	e0 93 d5 02 	sts	0x02D5, r30
-	
-}
      d02:	df 91       	pop	r29
      d04:	cf 91       	pop	r28
      d06:	08 95       	ret
 
 00000d08 <menu_left_button_flag>:
-	return 0;
-	
-}
-
-void menu_left_button_flag(void){
-	left_button_flag = 1;
      d08:	81 e0       	ldi	r24, 0x01	; 1
      d0a:	80 93 cc 02 	sts	0x02CC, r24
      d0e:	08 95       	ret
 
 00000d10 <menu_right_button_flag>:
-}
-
-
-void menu_right_button_flag(void){
-	right_button_flag = 1;
      d10:	81 e0       	ldi	r24, 0x01	; 1
      d12:	80 93 cd 02 	sts	0x02CD, r24
      d16:	08 95       	ret
 
 00000d18 <menu_set_contrast>:
-
-const char brightness_text_0[] PROGMEM = "Use left slider";
-
-void menu_set_contrast(void){
-	
-	oled_goto_line(0);
      d18:	80 e0       	ldi	r24, 0x00	; 0
      d1a:	90 e0       	ldi	r25, 0x00	; 0
      d1c:	b5 d1       	rcall	.+874    	; 0x1088 <oled_goto_line>
-	strcpy_P(temp,brightness_text_0);
      d1e:	60 ea       	ldi	r22, 0xA0	; 160
      d20:	70 e0       	ldi	r23, 0x00	; 0
      d22:	81 ee       	ldi	r24, 0xE1	; 225
      d24:	92 e0       	ldi	r25, 0x02	; 2
      d26:	0e 94 bb 0e 	call	0x1d76	; 0x1d76 <strcpy_P>
-	sram_write_string(temp);
      d2a:	81 ee       	ldi	r24, 0xE1	; 225
      d2c:	92 e0       	ldi	r25, 0x02	; 2
      d2e:	cb d2       	rcall	.+1430   	; 0x12c6 <sram_write_string>
-	sram_clear_line(1);
      d30:	81 e0       	ldi	r24, 0x01	; 1
      d32:	86 d4       	rcall	.+2316   	; 0x1640 <sram_clear_line>
-	oled_goto_line(2);
      d34:	82 e0       	ldi	r24, 0x02	; 2
      d36:	90 e0       	ldi	r25, 0x00	; 0
      d38:	a7 d1       	rcall	.+846    	; 0x1088 <oled_goto_line>
-	strcpy_P(temp,btn_1);
      d3a:	60 eb       	ldi	r22, 0xB0	; 176
      d3c:	70 e0       	ldi	r23, 0x00	; 0
      d3e:	81 ee       	ldi	r24, 0xE1	; 225
      d40:	92 e0       	ldi	r25, 0x02	; 2
      d42:	0e 94 bb 0e 	call	0x1d76	; 0x1d76 <strcpy_P>
-	sram_write_string(temp);
      d46:	81 ee       	ldi	r24, 0xE1	; 225
      d48:	92 e0       	ldi	r25, 0x02	; 2
      d4a:	bd d2       	rcall	.+1402   	; 0x12c6 <sram_write_string>
-	sram_push();
      d4c:	52 d4       	rcall	.+2212   	; 0x15f2 <sram_push>
-	while (right_button_flag == 0){	
      d4e:	80 91 cd 02 	lds	r24, 0x02CD
      d52:	81 11       	cpse	r24, r1
      d54:	0c c0       	rjmp	.+24     	; 0xd6e <menu_set_contrast+0x56>
-		write_c(0x81);
      d56:	81 e8       	ldi	r24, 0x81	; 129
      d58:	66 d1       	rcall	.+716    	; 0x1026 <write_c>
-		write_c(readADC(3)/2);
      d5a:	83 e0       	ldi	r24, 0x03	; 3
      d5c:	90 e0       	ldi	r25, 0x00	; 0
      d5e:	77 db       	rcall	.-2322   	; 0x44e <readADC>
      d60:	96 95       	lsr	r25
      d62:	87 95       	ror	r24
      d64:	60 d1       	rcall	.+704    	; 0x1026 <write_c>
-	sram_clear_line(1);
-	oled_goto_line(2);
-	strcpy_P(temp,btn_1);
-	sram_write_string(temp);
-	sram_push();
-	while (right_button_flag == 0){	
      d66:	80 91 cd 02 	lds	r24, 0x02CD
      d6a:	88 23       	and	r24, r24
      d6c:	a1 f3       	breq	.-24     	; 0xd56 <menu_set_contrast+0x3e>
-		write_c(0x81);
-		write_c(readADC(3)/2);
-	}
-	right_button_flag = 0;
      d6e:	10 92 cd 02 	sts	0x02CD, r1
      d72:	08 95       	ret
 
 00000d74 <menu_calibrate_joystick>:
-const char calibrate_direction_1[] PROGMEM = "DOWN";
-const char calibrate_direction_2[] PROGMEM = "LEFT";
-const char calibrate_direction_3[] PROGMEM = "RIGHT";
-const char* const calibrate_direction_array[] PROGMEM = {calibrate_direction_0,calibrate_direction_1,calibrate_direction_2,calibrate_direction_3};
-
-void menu_calibrate_joystick(void){
      d74:	0f 93       	push	r16
      d76:	1f 93       	push	r17
      d78:	cf 93       	push	r28
      d7a:	df 93       	push	r29
-	for (uint8_t i = 0; i < 7; i++){
      d7c:	c0 e0       	ldi	r28, 0x00	; 0
-		sram_clear_line(i);
      d7e:	8c 2f       	mov	r24, r28
      d80:	5f d4       	rcall	.+2238   	; 0x1640 <sram_clear_line>
-const char calibrate_direction_2[] PROGMEM = "LEFT";
-const char calibrate_direction_3[] PROGMEM = "RIGHT";
-const char* const calibrate_direction_array[] PROGMEM = {calibrate_direction_0,calibrate_direction_1,calibrate_direction_2,calibrate_direction_3};
-
-void menu_calibrate_joystick(void){
-	for (uint8_t i = 0; i < 7; i++){
      d82:	cf 5f       	subi	r28, 0xFF	; 255
      d84:	c7 30       	cpi	r28, 0x07	; 7
      d86:	d9 f7       	brne	.-10     	; 0xd7e <menu_calibrate_joystick+0xa>
-		sram_clear_line(i);
-	}
-	oled_goto_line(0);
      d88:	80 e0       	ldi	r24, 0x00	; 0
      d8a:	90 e0       	ldi	r25, 0x00	; 0
      d8c:	7d d1       	rcall	.+762    	; 0x1088 <oled_goto_line>
-	strcpy_P(temp,calibrate_text_0);
      d8e:	69 e9       	ldi	r22, 0x99	; 153
      d90:	70 e0       	ldi	r23, 0x00	; 0
      d92:	81 ee       	ldi	r24, 0xE1	; 225
      d94:	92 e0       	ldi	r25, 0x02	; 2
      d96:	ef d7       	rcall	.+4062   	; 0x1d76 <strcpy_P>
-	sram_write_string(temp);
      d98:	81 ee       	ldi	r24, 0xE1	; 225
      d9a:	92 e0       	ldi	r25, 0x02	; 2
      d9c:	94 d2       	rcall	.+1320   	; 0x12c6 <sram_write_string>
-	oled_goto_line(2);
      d9e:	82 e0       	ldi	r24, 0x02	; 2
      da0:	90 e0       	ldi	r25, 0x00	; 0
      da2:	72 d1       	rcall	.+740    	; 0x1088 <oled_goto_line>
-	strcpy_P(temp,btn_1);
      da4:	60 eb       	ldi	r22, 0xB0	; 176
      da6:	70 e0       	ldi	r23, 0x00	; 0
      da8:	81 ee       	ldi	r24, 0xE1	; 225
      daa:	92 e0       	ldi	r25, 0x02	; 2
      dac:	e4 d7       	rcall	.+4040   	; 0x1d76 <strcpy_P>
-	sram_write_string(temp);
      dae:	81 ee       	ldi	r24, 0xE1	; 225
      db0:	92 e0       	ldi	r25, 0x02	; 2
      db2:	89 d2       	rcall	.+1298   	; 0x12c6 <sram_write_string>
-	sram_push();
      db4:	1e d4       	rcall	.+2108   	; 0x15f2 <sram_push>
-	while (right_button_flag == 0){
      db6:	80 91 cd 02 	lds	r24, 0x02CD
      dba:	81 11       	cpse	r24, r1
      dbc:	0a c0       	rjmp	.+20     	; 0xdd2 <menu_calibrate_joystick+0x5e>
@@ -1772,23 +1420,15 @@ void menu_calibrate_joystick(void){
      dca:	80 91 cd 02 	lds	r24, 0x02CD
      dce:	88 23       	and	r24, r24
      dd0:	b1 f3       	breq	.-20     	; 0xdbe <menu_calibrate_joystick+0x4a>
-		_delay_ms(1);
-	}
-	right_button_flag = 0;
      dd2:	10 92 cd 02 	sts	0x02CD, r1
-	
-	
-	oled_clear_line(0);
      dd6:	80 e0       	ldi	r24, 0x00	; 0
      dd8:	90 e0       	ldi	r25, 0x00	; 0
      dda:	7e d1       	rcall	.+764    	; 0x10d8 <oled_clear_line>
-	strcpy_P(temp,calibrate_text_1);
      ddc:	6b e8       	ldi	r22, 0x8B	; 139
      dde:	70 e0       	ldi	r23, 0x00	; 0
      de0:	81 ee       	ldi	r24, 0xE1	; 225
      de2:	92 e0       	ldi	r25, 0x02	; 2
      de4:	c8 d7       	rcall	.+3984   	; 0x1d76 <strcpy_P>
-	sram_write_string(temp);
      de6:	81 ee       	ldi	r24, 0xE1	; 225
      de8:	92 e0       	ldi	r25, 0x02	; 2
      dea:	6d d2       	rcall	.+1242   	; 0x12c6 <sram_write_string>
@@ -1796,27 +1436,19 @@ void menu_calibrate_joystick(void){
      dee:	d0 e0       	ldi	r29, 0x00	; 0
      df0:	08 e7       	ldi	r16, 0x78	; 120
      df2:	10 e0       	ldi	r17, 0x00	; 0
-	
-	for (uint8_t i = 0; i < 4; i++){
-		
-		oled_clear_line(1);
      df4:	81 e0       	ldi	r24, 0x01	; 1
      df6:	90 e0       	ldi	r25, 0x00	; 0
      df8:	6f d1       	rcall	.+734    	; 0x10d8 <oled_clear_line>
-		strcpy_P(temp,(char*)pgm_read_word(&(calibrate_direction_array[i])));
      dfa:	fe 01       	movw	r30, r28
      dfc:	65 91       	lpm	r22, Z+
      dfe:	74 91       	lpm	r23, Z
      e00:	81 ee       	ldi	r24, 0xE1	; 225
      e02:	92 e0       	ldi	r25, 0x02	; 2
      e04:	b8 d7       	rcall	.+3952   	; 0x1d76 <strcpy_P>
-		sram_write_string(temp);
      e06:	81 ee       	ldi	r24, 0xE1	; 225
      e08:	92 e0       	ldi	r25, 0x02	; 2
      e0a:	5d d2       	rcall	.+1210   	; 0x12c6 <sram_write_string>
-		sram_push();
      e0c:	f2 d3       	rcall	.+2020   	; 0x15f2 <sram_push>
-		while (right_button_flag == 0){
      e0e:	80 91 cd 02 	lds	r24, 0x02CD
      e12:	81 11       	cpse	r24, r1
      e14:	0a c0       	rjmp	.+20     	; 0xe2a <menu_calibrate_joystick+0xb6>
@@ -1829,25 +1461,11 @@ void menu_calibrate_joystick(void){
      e22:	80 91 cd 02 	lds	r24, 0x02CD
      e26:	88 23       	and	r24, r24
      e28:	b1 f3       	breq	.-20     	; 0xe16 <menu_calibrate_joystick+0xa2>
-			_delay_ms(1);
-		}
-		right_button_flag = 0;
      e2a:	10 92 cd 02 	sts	0x02CD, r1
      e2e:	22 96       	adiw	r28, 0x02	; 2
-	
-	oled_clear_line(0);
-	strcpy_P(temp,calibrate_text_1);
-	sram_write_string(temp);
-	
-	for (uint8_t i = 0; i < 4; i++){
      e30:	c0 17       	cp	r28, r16
      e32:	d1 07       	cpc	r29, r17
      e34:	f9 f6       	brne	.-66     	; 0xdf4 <menu_calibrate_joystick+0x80>
-		while (right_button_flag == 0){
-			_delay_ms(1);
-		}
-		right_button_flag = 0;
-	}
      e36:	df 91       	pop	r29
      e38:	cf 91       	pop	r28
      e3a:	1f 91       	pop	r17
@@ -1855,41 +1473,23 @@ void menu_calibrate_joystick(void){
      e3e:	08 95       	ret
 
 00000e40 <menu_function_selected>:
-void menu_right_button_flag(void){
-	right_button_flag = 1;
-}
-
-void menu_function_selected(void){
-	if(current_selected == &option_1){
      e40:	80 91 d5 02 	lds	r24, 0x02D5
      e44:	90 91 d6 02 	lds	r25, 0x02D6
      e48:	22 e0       	ldi	r18, 0x02	; 2
      e4a:	8b 3f       	cpi	r24, 0xFB	; 251
      e4c:	92 07       	cpc	r25, r18
      e4e:	11 f4       	brne	.+4      	; 0xe54 <menu_function_selected+0x14>
-		menu_set_contrast();
      e50:	63 cf       	rjmp	.-314    	; 0xd18 <menu_set_contrast>
      e52:	08 95       	ret
-	}else if(current_selected == &debug_1){
      e54:	89 51       	subi	r24, 0x19	; 25
      e56:	93 40       	sbci	r25, 0x03	; 3
      e58:	09 f4       	brne	.+2      	; 0xe5c <menu_function_selected+0x1c>
-		menu_calibrate_joystick();
      e5a:	8c cf       	rjmp	.-232    	; 0xd74 <menu_calibrate_joystick>
      e5c:	08 95       	ret
 
 00000e5e <navigate_menu>:
-	}
-	else if (joystick_reading_y < -NAVIGATION_TRHESHOLD){
-		current_selected = current_selected->ptr_sib_down;
-	}
-	*/
-	int joystick_reading = read_control_input('Y');
      e5e:	89 e5       	ldi	r24, 0x59	; 89
      e60:	a4 dc       	rcall	.-1720   	; 0x7aa <read_control_input>
-	
-	// Navigate up.
-	if(joystick_reading > NAVIGATION_TRHESHOLD && y_lock <= NAVIGATION_TRHESHOLD){
      e62:	87 34       	cpi	r24, 0x47	; 71
      e64:	91 05       	cpc	r25, r1
      e66:	4c f1       	brlt	.+82     	; 0xeba <navigate_menu+0x5c>
@@ -1898,7 +1498,6 @@ void menu_function_selected(void){
      e70:	27 34       	cpi	r18, 0x47	; 71
      e72:	31 05       	cpc	r19, r1
      e74:	14 f5       	brge	.+68     	; 0xeba <navigate_menu+0x5c>
-		for(int i = 0; i < current_selected->n_sib-1; i++){
      e76:	e0 91 d5 02 	lds	r30, 0x02D5
      e7a:	f0 91 d6 02 	lds	r31, 0x02D6
      e7e:	82 81       	ldd	r24, Z+2	; 0x02
@@ -1909,16 +1508,9 @@ void menu_function_selected(void){
      e88:	8c f4       	brge	.+34     	; 0xeac <navigate_menu+0x4e>
      e8a:	80 e0       	ldi	r24, 0x00	; 0
      e8c:	90 e0       	ldi	r25, 0x00	; 0
-			current_selected = current_selected->ptr_sib_down;
      e8e:	04 80       	ldd	r0, Z+4	; 0x04
      e90:	f5 81       	ldd	r31, Z+5	; 0x05
      e92:	e0 2d       	mov	r30, r0
-	*/
-	int joystick_reading = read_control_input('Y');
-	
-	// Navigate up.
-	if(joystick_reading > NAVIGATION_TRHESHOLD && y_lock <= NAVIGATION_TRHESHOLD){
-		for(int i = 0; i < current_selected->n_sib-1; i++){
      e94:	01 96       	adiw	r24, 0x01	; 1
      e96:	22 81       	ldd	r18, Z+2	; 0x02
      e98:	33 81       	ldd	r19, Z+3	; 0x03
@@ -1929,16 +1521,11 @@ void menu_function_selected(void){
      ea2:	ac f3       	brlt	.-22     	; 0xe8e <navigate_menu+0x30>
      ea4:	f0 93 d6 02 	sts	0x02D6, r31
      ea8:	e0 93 d5 02 	sts	0x02D5, r30
-			current_selected = current_selected->ptr_sib_down;
-		}
-		y_lock = RANGE_MAX;
      eac:	84 e6       	ldi	r24, 0x64	; 100
      eae:	90 e0       	ldi	r25, 0x00	; 0
      eb0:	90 93 cb 02 	sts	0x02CB, r25
      eb4:	80 93 ca 02 	sts	0x02CA, r24
      eb8:	25 c0       	rjmp	.+74     	; 0xf04 <navigate_menu+0xa6>
-		
-	}else if (joystick_reading < -NAVIGATION_TRHESHOLD && y_lock >= -NAVIGATION_TRHESHOLD)
      eba:	8a 3b       	cpi	r24, 0xBA	; 186
      ebc:	2f ef       	ldi	r18, 0xFF	; 255
      ebe:	92 07       	cpc	r25, r18
@@ -1948,127 +1535,78 @@ void menu_function_selected(void){
      eca:	2a 3b       	cpi	r18, 0xBA	; 186
      ecc:	3f 4f       	sbci	r19, 0xFF	; 255
      ece:	8c f0       	brlt	.+34     	; 0xef2 <navigate_menu+0x94>
-	{
-		current_selected = current_selected->ptr_sib_down;
      ed0:	e0 91 d5 02 	lds	r30, 0x02D5
      ed4:	f0 91 d6 02 	lds	r31, 0x02D6
      ed8:	84 81       	ldd	r24, Z+4	; 0x04
      eda:	95 81       	ldd	r25, Z+5	; 0x05
      edc:	90 93 d6 02 	sts	0x02D6, r25
      ee0:	80 93 d5 02 	sts	0x02D5, r24
-		y_lock = RANGE_MIN;
      ee4:	8c e9       	ldi	r24, 0x9C	; 156
      ee6:	9f ef       	ldi	r25, 0xFF	; 255
      ee8:	90 93 cb 02 	sts	0x02CB, r25
      eec:	80 93 ca 02 	sts	0x02CA, r24
      ef0:	09 c0       	rjmp	.+18     	; 0xf04 <navigate_menu+0xa6>
-		// No navigation input on y-axis.
-	}else if(joystick_reading < NAVIGATION_TRHESHOLD && joystick_reading > -NAVIGATION_TRHESHOLD){
      ef2:	8b 5b       	subi	r24, 0xBB	; 187
      ef4:	9f 4f       	sbci	r25, 0xFF	; 255
      ef6:	8b 38       	cpi	r24, 0x8B	; 139
      ef8:	91 05       	cpc	r25, r1
      efa:	20 f4       	brcc	.+8      	; 0xf04 <navigate_menu+0xa6>
-		y_lock = 0;
      efc:	10 92 cb 02 	sts	0x02CB, r1
      f00:	10 92 ca 02 	sts	0x02CA, r1
-	}
-	if (right_button_flag == 1)
      f04:	80 91 cd 02 	lds	r24, 0x02CD
      f08:	81 30       	cpi	r24, 0x01	; 1
      f0a:	a9 f4       	brne	.+42     	; 0xf36 <navigate_menu+0xd8>
-	{
-		right_button_flag = 0;
      f0c:	10 92 cd 02 	sts	0x02CD, r1
-		if(current_selected->ptr_child != NULL){
      f10:	e0 91 d5 02 	lds	r30, 0x02D5
      f14:	f0 91 d6 02 	lds	r31, 0x02D6
      f18:	86 81       	ldd	r24, Z+6	; 0x06
      f1a:	97 81       	ldd	r25, Z+7	; 0x07
      f1c:	00 97       	sbiw	r24, 0x00	; 0
      f1e:	49 f0       	breq	.+18     	; 0xf32 <navigate_menu+0xd4>
-			current_head = current_selected->ptr_child;
      f20:	90 93 d4 02 	sts	0x02D4, r25
      f24:	80 93 d3 02 	sts	0x02D3, r24
-			current_selected = current_selected->ptr_child;
      f28:	90 93 d6 02 	sts	0x02D6, r25
      f2c:	80 93 d5 02 	sts	0x02D5, r24
      f30:	1e c0       	rjmp	.+60     	; 0xf6e <navigate_menu+0x110>
-		}else{
-			menu_function_selected();
      f32:	86 df       	rcall	.-244    	; 0xe40 <menu_function_selected>
      f34:	1c c0       	rjmp	.+56     	; 0xf6e <navigate_menu+0x110>
-		}
-	}else if (left_button_flag == 1){
      f36:	80 91 cc 02 	lds	r24, 0x02CC
      f3a:	81 30       	cpi	r24, 0x01	; 1
      f3c:	c1 f4       	brne	.+48     	; 0xf6e <navigate_menu+0x110>
-		left_button_flag = 0;
      f3e:	10 92 cc 02 	sts	0x02CC, r1
-		if (current_selected->ptr_parent != NULL){
      f42:	e0 91 d5 02 	lds	r30, 0x02D5
      f46:	f0 91 d6 02 	lds	r31, 0x02D6
      f4a:	80 85       	ldd	r24, Z+8	; 0x08
      f4c:	91 85       	ldd	r25, Z+9	; 0x09
      f4e:	00 97       	sbiw	r24, 0x00	; 0
      f50:	71 f0       	breq	.+28     	; 0xf6e <navigate_menu+0x110>
-			current_head = current_head->ptr_parent;
      f52:	e0 91 d3 02 	lds	r30, 0x02D3
      f56:	f0 91 d4 02 	lds	r31, 0x02D4
      f5a:	20 85       	ldd	r18, Z+8	; 0x08
      f5c:	31 85       	ldd	r19, Z+9	; 0x09
      f5e:	30 93 d4 02 	sts	0x02D4, r19
      f62:	20 93 d3 02 	sts	0x02D3, r18
-			current_selected = current_selected->ptr_parent;
      f66:	90 93 d6 02 	sts	0x02D6, r25
      f6a:	80 93 d5 02 	sts	0x02D5, r24
-		}
-	}
-	return 0;
-	
-}
      f6e:	80 e0       	ldi	r24, 0x00	; 0
      f70:	90 e0       	ldi	r25, 0x00	; 0
      f72:	08 95       	ret
 
 00000f74 <menu_update>:
-	// current_selected is the selected menu entry of the current menu.
-	current_selected = &mainmenu_0;
-	
-}
-int abc = 0;
-void menu_update(void){
      f74:	0f 93       	push	r16
      f76:	1f 93       	push	r17
      f78:	cf 93       	push	r28
      f7a:	df 93       	push	r29
-	if(navigate_menu()){ //if something is selected this is true, else the screen updates
      f7c:	70 df       	rcall	.-288    	; 0xe5e <navigate_menu>
      f7e:	89 2b       	or	r24, r25
      f80:	09 f0       	breq	.+2      	; 0xf84 <menu_update+0x10>
      f82:	44 c0       	rjmp	.+136    	; 0x100c <menu_update+0x98>
      f84:	c0 e0       	ldi	r28, 0x00	; 0
-		
-	}else{
-		for (int j = 0; j < 7; j++)
-		{
-			sram_clear_line(j);
      f86:	8c 2f       	mov	r24, r28
      f88:	5b d3       	rcall	.+1718   	; 0x1640 <sram_clear_line>
      f8a:	cf 5f       	subi	r28, 0xFF	; 255
-int abc = 0;
-void menu_update(void){
-	if(navigate_menu()){ //if something is selected this is true, else the screen updates
-		
-	}else{
-		for (int j = 0; j < 7; j++)
      f8c:	c7 30       	cpi	r28, 0x07	; 7
      f8e:	d9 f7       	brne	.-10     	; 0xf86 <menu_update+0x12>
-		{
-			sram_clear_line(j);
-		}
-		
-		for (int i = 0; i < current_head->n_sib; i++)
      f90:	e0 91 d3 02 	lds	r30, 0x02D3
      f94:	f0 91 d4 02 	lds	r31, 0x02D4
      f98:	82 81       	ldd	r24, Z+2	; 0x02
@@ -2078,27 +1616,13 @@ void menu_update(void){
      fa0:	ac f5       	brge	.+106    	; 0x100c <menu_update+0x98>
      fa2:	c0 e0       	ldi	r28, 0x00	; 0
      fa4:	d0 e0       	ldi	r29, 0x00	; 0
-			oled_goto_column(0);
-			strcpy_P(temp,current_head->title);
-			
-			
-			//oled_print_char(128 + (current_head == current_selected));
-			sram_write_char(128 + (current_head == current_selected));
      fa6:	10 e8       	ldi	r17, 0x80	; 128
      fa8:	01 e8       	ldi	r16, 0x81	; 129
-			sram_clear_line(j);
-		}
-		
-		for (int i = 0; i < current_head->n_sib; i++)
-		{
-			oled_goto_line(i);
      faa:	ce 01       	movw	r24, r28
      fac:	6d d0       	rcall	.+218    	; 0x1088 <oled_goto_line>
-			oled_goto_column(0);
      fae:	80 e0       	ldi	r24, 0x00	; 0
      fb0:	90 e0       	ldi	r25, 0x00	; 0
      fb2:	8b d0       	rcall	.+278    	; 0x10ca <oled_goto_column>
-			strcpy_P(temp,current_head->title);
      fb4:	e0 91 d3 02 	lds	r30, 0x02D3
      fb8:	f0 91 d4 02 	lds	r31, 0x02D4
      fbc:	60 81       	ld	r22, Z
@@ -2106,10 +1630,6 @@ void menu_update(void){
      fc0:	81 ee       	ldi	r24, 0xE1	; 225
      fc2:	92 e0       	ldi	r25, 0x02	; 2
      fc4:	d8 d6       	rcall	.+3504   	; 0x1d76 <strcpy_P>
-			
-			
-			//oled_print_char(128 + (current_head == current_selected));
-			sram_write_char(128 + (current_head == current_selected));
      fc6:	20 91 d3 02 	lds	r18, 0x02D3
      fca:	30 91 d4 02 	lds	r19, 0x02D4
      fce:	80 91 d5 02 	lds	r24, 0x02D5
@@ -2121,12 +1641,9 @@ void menu_update(void){
      fde:	01 c0       	rjmp	.+2      	; 0xfe2 <menu_update+0x6e>
      fe0:	81 2f       	mov	r24, r17
      fe2:	25 d1       	rcall	.+586    	; 0x122e <sram_write_char>
-			//oled_print(temp);
-			sram_write_string(temp);
      fe4:	81 ee       	ldi	r24, 0xE1	; 225
      fe6:	92 e0       	ldi	r25, 0x02	; 2
      fe8:	6e d1       	rcall	.+732    	; 0x12c6 <sram_write_string>
-			current_head = current_head->ptr_sib_down;
      fea:	e0 91 d3 02 	lds	r30, 0x02D3
      fee:	f0 91 d4 02 	lds	r31, 0x02D4
      ff2:	04 80       	ldd	r0, Z+4	; 0x04
@@ -2134,37 +1651,20 @@ void menu_update(void){
      ff6:	e0 2d       	mov	r30, r0
      ff8:	f0 93 d4 02 	sts	0x02D4, r31
      ffc:	e0 93 d3 02 	sts	0x02D3, r30
-		for (int j = 0; j < 7; j++)
-		{
-			sram_clear_line(j);
-		}
-		
-		for (int i = 0; i < current_head->n_sib; i++)
     1000:	21 96       	adiw	r28, 0x01	; 1
     1002:	82 81       	ldd	r24, Z+2	; 0x02
     1004:	93 81       	ldd	r25, Z+3	; 0x03
     1006:	c8 17       	cp	r28, r24
     1008:	d9 07       	cpc	r29, r25
     100a:	7c f2       	brlt	.-98     	; 0xfaa <menu_update+0x36>
-			current_head = current_head->ptr_sib_down;
-		}
-		
-	}
-	
-	if(timer_check_flag()){//a timer with frequency of 60Hz ensures a framerate of 60Hz
     100c:	10 d4       	rcall	.+2080   	; 0x182e <timer_check_flag>
     100e:	88 23       	and	r24, r24
     1010:	29 f0       	breq	.+10     	; 0x101c <menu_update+0xa8>
-		sram_push();
     1012:	ef d2       	rcall	.+1502   	; 0x15f2 <sram_push>
-		timer_disable_flag();
     1014:	0f d4       	rcall	.+2078   	; 0x1834 <timer_disable_flag>
-		sram_scroll_data(7,1);
     1016:	61 e0       	ldi	r22, 0x01	; 1
     1018:	87 e0       	ldi	r24, 0x07	; 7
     101a:	3a d3       	rcall	.+1652   	; 0x1690 <sram_scroll_data>
-	}
-}
     101c:	df 91       	pop	r29
     101e:	cf 91       	pop	r28
     1020:	1f 91       	pop	r17
@@ -2172,12 +1672,6 @@ void menu_update(void){
     1024:	08 95       	ret
 
 00001026 <write_c>:
-
-void sram_draw_triangle(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2){
-	sram_draw_line(x0,y0,x1,y1);
-	sram_draw_line(x1,y1,x2,y2);
-	sram_draw_line(x2,y2,x0,y0);
-}
     1026:	e0 91 0a 01 	lds	r30, 0x010A
     102a:	f0 91 0b 01 	lds	r31, 0x010B
     102e:	80 83       	st	Z, r24
@@ -3048,9 +2542,6 @@ void sram_draw_triangle(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t 
     1788:	08 95       	ret
 
 0000178a <sram_draw_rectangle>:
-
-
-void sram_draw_rectangle(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1){
     178a:	cf 92       	push	r12
     178c:	df 92       	push	r13
     178e:	ef 92       	push	r14
@@ -3060,7 +2551,6 @@ void sram_draw_rectangle(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1){
     1796:	cf 93       	push	r28
     1798:	df 93       	push	r29
     179a:	c4 2f       	mov	r28, r20
-	sram_draw_line(x0,y0,x0,y1);
     179c:	e2 2e       	mov	r14, r18
     179e:	f1 2c       	mov	r15, r1
     17a0:	06 2f       	mov	r16, r22
@@ -3072,20 +2562,17 @@ void sram_draw_rectangle(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1){
     17ac:	b8 01       	movw	r22, r16
     17ae:	c6 01       	movw	r24, r12
     17b0:	e3 dd       	rcall	.-1082   	; 0x1378 <sram_draw_line>
-	sram_draw_line(x0,y0,x1,y0);
     17b2:	d0 e0       	ldi	r29, 0x00	; 0
     17b4:	98 01       	movw	r18, r16
     17b6:	ae 01       	movw	r20, r28
     17b8:	b8 01       	movw	r22, r16
     17ba:	c6 01       	movw	r24, r12
     17bc:	dd dd       	rcall	.-1094   	; 0x1378 <sram_draw_line>
-	sram_draw_line(x0,y1,x1,y1);
     17be:	97 01       	movw	r18, r14
     17c0:	ae 01       	movw	r20, r28
     17c2:	b7 01       	movw	r22, r14
     17c4:	c6 01       	movw	r24, r12
     17c6:	d8 dd       	rcall	.-1104   	; 0x1378 <sram_draw_line>
-	sram_draw_line(x1,y0,x1,y1);
     17c8:	97 01       	movw	r18, r14
     17ca:	ae 01       	movw	r20, r28
     17cc:	b8 01       	movw	r22, r16
@@ -3102,78 +2589,38 @@ void sram_draw_rectangle(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1){
     17e2:	08 95       	ret
 
 000017e4 <SPI_send>:
-	
-	//Wait for data to be received
-	while(!(SPSR & (1<<SPIF)));
-
-	return SPDR;
-}
     17e4:	8f b9       	out	0x0f, r24	; 15
     17e6:	77 9b       	sbis	0x0e, 7	; 14
     17e8:	fe cf       	rjmp	.-4      	; 0x17e6 <SPI_send+0x2>
     17ea:	08 95       	ret
 
 000017ec <SPI_select>:
-
-void SPI_select(void){
-	PORTB &= ~(1 << SPI_SS);
     17ec:	c4 98       	cbi	0x18, 4	; 24
     17ee:	08 95       	ret
 
 000017f0 <SPI_deselect>:
-}
-
-void SPI_deselect(void){
-	PORTB |= (1 << SPI_SS);
     17f0:	c4 9a       	sbi	0x18, 4	; 24
     17f2:	08 95       	ret
 
 000017f4 <SPI_initialize>:
-#define		SPI_MOSI		PB5
-#define		SPI_MISO		PB6
-#define		SPI_SCK			PB7
-
-void SPI_initialize(void){
-	DDRB |=	(1 << SPI_MOSI) | (1 << SPI_SCK) | (1 << SPI_SS);
     17f4:	87 b3       	in	r24, 0x17	; 23
     17f6:	80 6b       	ori	r24, 0xB0	; 176
     17f8:	87 bb       	out	0x17, r24	; 23
-	DDRB &= ~(1 << SPI_MISO);
     17fa:	be 98       	cbi	0x17, 6	; 23
-	//BIT_ON(SPCR,SPIE);		//SPI INTERRUPT ENABLE
-	//BIT_OFF(SPCR,DORD);		//transmit the most significant bit first, change to ON if we transmit the Least significant first
-	BIT_ON(SPCR,MSTR);		//MASTER/SLAVE SELECT, set to 1 for master, 0 for slave (master wanted)
     17fc:	6c 9a       	sbi	0x0d, 4	; 13
-	//BIT_ON(SPCR,CPOL);		//CLOCK POLARITY, NO IDEA WHAT WE NEED!!!!!!!!!!!!!
-	//BIT_ON(SPCR,CPHA);		//CLOCK PHASE, NO IDEA!!!!!!!!!!!
-	//BIT_ON(SPCR,SPR1);		//SPI CLOCK RATE SELECT, BIT 1
-	//BIT_ON(SPCR,SPR0);		//SPI CLOCK RATE SELECT, BIT 0
-	BIT_ON(SPCR,SPE);		//SPI ENABLE, overrides the normal pins function (we want this)
     17fe:	6e 9a       	sbi	0x0d, 6	; 13
-	SPSR |= (1 << SPI2X); //ADD COMMENT------------------------------------------------------------------------------------------------------------
     1800:	70 9a       	sbi	0x0e, 0	; 14
-	//sei();
-	SPI_deselect();
     1802:	f6 cf       	rjmp	.-20     	; 0x17f0 <SPI_deselect>
     1804:	08 95       	ret
 
 00001806 <initialize_timer>:
-
-#include "timer.h"
-
-uint8_t FLAG_refresh_screen;
-
-void initialize_timer(uint8_t fps){	//	Function for initilization of the timers
     1806:	28 2f       	mov	r18, r24
-	TIMSK |= (1<<OCIE0);//when timer is the same as OCR0 it sends an interrupt
     1808:	89 b7       	in	r24, 0x39	; 57
     180a:	81 60       	ori	r24, 0x01	; 1
     180c:	89 bf       	out	0x39, r24	; 57
-	TCCR0 |= (1<<WGM01)|(1<<CS02)|(1<<CS00);//		WGM01: set mode to CTC (reset timer on OCR0)     CS0n:set prescaler (to 1024)
     180e:	83 b7       	in	r24, 0x33	; 51
     1810:	8d 60       	ori	r24, 0x0D	; 13
     1812:	83 bf       	out	0x33, r24	; 51
-	OCR0 = (F_CPU/PRESCALER)/fps;//-> 4800Hz. Then we just need to count to (4800Hz/Desired_Fps) to get the amount we need count to. (60fps -> 80)
     1814:	30 e0       	ldi	r19, 0x00	; 0
     1816:	40 e0       	ldi	r20, 0x00	; 0
     1818:	50 e0       	ldi	r21, 0x00	; 0
@@ -3183,41 +2630,27 @@ void initialize_timer(uint8_t fps){	//	Function for initilization of the timers
     1820:	90 e0       	ldi	r25, 0x00	; 0
     1822:	57 d2       	rcall	.+1198   	; 0x1cd2 <__divmodsi4>
     1824:	21 bf       	out	0x31, r18	; 49
-	FLAG_refresh_screen = 1;//since we are initializing we want to refresh the page
     1826:	81 e0       	ldi	r24, 0x01	; 1
     1828:	80 93 39 03 	sts	0x0339, r24
     182c:	08 95       	ret
 
 0000182e <timer_check_flag>:
-}
-
-uint8_t timer_check_flag(void){	//	function for getting the value of the timer
-	return FLAG_refresh_screen;
-}
     182e:	80 91 39 03 	lds	r24, 0x0339
     1832:	08 95       	ret
 
 00001834 <timer_disable_flag>:
-
-void timer_disable_flag(void){	//	function for getting the value of the timer
-	FLAG_refresh_screen = 0;
     1834:	10 92 39 03 	sts	0x0339, r1
     1838:	08 95       	ret
 
 0000183a <__vector_16>:
-}
-
-ISR(TIMER0_COMP_vect){//interrupt when Timer_0 is done, resets itself
     183a:	1f 92       	push	r1
     183c:	0f 92       	push	r0
     183e:	0f b6       	in	r0, 0x3f	; 63
     1840:	0f 92       	push	r0
     1842:	11 24       	eor	r1, r1
     1844:	8f 93       	push	r24
-	FLAG_refresh_screen = 1;
     1846:	81 e0       	ldi	r24, 0x01	; 1
     1848:	80 93 39 03 	sts	0x0339, r24
-}
     184c:	8f 91       	pop	r24
     184e:	0f 90       	pop	r0
     1850:	0f be       	out	0x3f, r0	; 63
@@ -3226,48 +2659,23 @@ ISR(TIMER0_COMP_vect){//interrupt when Timer_0 is done, resets itself
     1856:	18 95       	reti
 
 00001858 <send_UART>:
- */ 
-#include "uart.h"
-
-void send_UART(char letter){
-	//send UART melding
-	while( !(UCSR0A & (1<<UDRE0)) );				/* UCSR0A = USART 0 Control and Status Register A, UDRE0 = UCSR0A bit definitions (5) */
     1858:	5d 9b       	sbis	0x0b, 5	; 11
     185a:	fe cf       	rjmp	.-4      	; 0x1858 <send_UART>
-	UDR0 = letter;									/* UDR0 = USART 0 Data Register */
     185c:	8c b9       	out	0x0c, r24	; 12
     185e:	08 95       	ret
 
 00001860 <recieve_UART>:
-	UCSR0B = (1<<RXEN0)|(1<<TXEN0);					/* UCSR0B = USART 0 Control and Status Register B, RXEN0 & TXEN0 = UCSR0B bit definitions */
-	fdevopen((int(*)(char, struct __file*))&send_UART, (int(*)(struct __file*))&recieve_UART); //overrides printf("string");
-}
-
-unsigned int recieve_UART(void){
-	while (!(UCSR0A & (1 << RXC0)));				/* UCSR0A = USART 0 Control and Status Register A, RXC0 = UCSR0A bit definition (7) */
     1860:	5f 9b       	sbis	0x0b, 7	; 11
     1862:	fe cf       	rjmp	.-4      	; 0x1860 <recieve_UART>
-	return UDR0;									/* UDR0 = USART 0 Data Register */
     1864:	8c b1       	in	r24, 0x0c	; 12
-}
     1866:	90 e0       	ldi	r25, 0x00	; 0
     1868:	08 95       	ret
 
 0000186a <init_UART>:
-	UDR0 = letter;									/* UDR0 = USART 0 Data Register */
-}
-
-void init_UART(unsigned int ubrr){
-	//set baud rate
-	UBRR0H = (unsigned char)(ubrr>>8);				/* UBBR0H = USART 0 Baud-Rate Register High Byte, Shared with UCSR0C */
     186a:	90 bd       	out	0x20, r25	; 32
-	UBRR0L = (unsigned char)(ubrr);					/* UBBR0L = USART 0 Baud-Rate Register Low Byte */
     186c:	89 b9       	out	0x09, r24	; 9
-	//enable receiver and transmitter				
-	UCSR0B = (1<<RXEN0)|(1<<TXEN0);					/* UCSR0B = USART 0 Control and Status Register B, RXEN0 & TXEN0 = UCSR0B bit definitions */
     186e:	88 e1       	ldi	r24, 0x18	; 24
     1870:	8a b9       	out	0x0a, r24	; 10
-	fdevopen((int(*)(char, struct __file*))&send_UART, (int(*)(struct __file*))&recieve_UART); //overrides printf("string");
     1872:	60 e3       	ldi	r22, 0x30	; 48
     1874:	7c e0       	ldi	r23, 0x0C	; 12
     1876:	8c e2       	ldi	r24, 0x2C	; 44
