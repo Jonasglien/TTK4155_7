@@ -6,25 +6,48 @@
  */ 
 
 #include "can.h"
-static CAN_message_t CAN_receive_buffer; //VOLATILE ??????????????????????????????
+//#include <util/delay.h>
+
+static CAN_message_t CAN_receive_buffer;
 static CAN_message_t CAN_send_buffer;
-uint8_t FLAG_new_message = 0;
+uint8_t receive_flag = 0;
+
 
 
 void CAN_initialize(void){
 	MCP2515_initialize();
-	int i = 1;
-	i++;
-	EMCUCR &= ~(1<<ISC2); /*Extended MCU Control Register bit 0 ....turned off? */
-	GICR |= (1<<INT2);   /* General Interrupt Control Register port int2 defined as on?*/
-	MCP2515_bit_modify(CANINTE,0b00000001,0b00000001);
-	CAN_construct_message(CAN_ID,CAN_MESSAGE_LENGTH);
+
+	
+	
+	// Initialize empty message for transmission
+	CAN_construct_message(CAN_ID,CAN_MESSAGE_LENGTH); 
+	
+	// Turn mask/filters off; receive any message AND Enable Rollover
+	MCP2515_bit_modify(MCP_RXB0CTRL,0b01100100,0xFF);
+	MCP2515_bit_modify(MCP_RXB1CTRL,0b01100100,0xFF);
+	
+	// RX0IE Receive Buffer 0 FUll Interrupt Enable bit
+	MCP2515_bit_modify(MCP_CANINTE,0x01,1);
+	
+	//set CAN mode
+	MCP2515_bit_modify(MCP_CANCTRL, MODE_MASK, MODE_NORMAL);
+
+	// Set up interrupts.
+	CAN_interrupt_setup();
+	
+	printf("MCP_CANSTAT: %i\n", MCP2515_read(MCP_CANSTAT));
+	printf("CAN initialized.\n\n");
+
+	
 }
+
+
 
 CAN_message_t* CAN_message_receive(void){	
 	return &CAN_receive_buffer;
 }
 
+	
 void CAN_construct_message(int id, uint8_t length){
 	CAN_send_buffer.id = id;
 	CAN_send_buffer.length = length;
@@ -33,7 +56,8 @@ void CAN_construct_message(int id, uint8_t length){
 	}
 }
 
-void CAN_message_send(uint8_t *data){//array of uint8_t as input
+	//array of uint8_t as input
+void CAN_message_send(int8_t *data){
 	for(uint8_t i = 0; i < CAN_send_buffer.length; i++){
 		CAN_send_buffer.data[i] = data[i];
 	}
@@ -41,49 +65,75 @@ void CAN_message_send(uint8_t *data){//array of uint8_t as input
 }
 
 void CAN_send_byte(CAN_message_t* message,uint8_t n){
-	MCP2515_write(0x31+n*0x10,message->id>>3);//8 most significant bits of the message ID
-	MCP2515_write(0x32+n*0x10,message->id<<5);//3 least significant bits of the message ID
-	MCP2515_write(0x35+n*0x10,(0b00001111)&(message->length));//Message length
+	MCP2515_write(MCP_TXBnSIDH+n*0x10,message->id>>3);		//8 most significant bits of the message ID
+	MCP2515_write(MCP_TXBnSIDL+n*0x10,message->id<<5);		//3 least significant bits of the message ID
+	MCP2515_write(MCP_TXBnDLC+n*0x10,(0b00001111)&(message->length));		//Message length
 	
-	for (uint8_t i = 0; i < message->length;i++)
-	{
-		MCP2515_write(0x36+n*0x10+i,message->data[i]);//Message data
+	for (uint8_t i = 0; i < message->length;i++){
+		MCP2515_write(MCP_TXBnD0+n*0x10+i,message->data[i]);	//Message data
 	}
-	
-	MCP2515_request_to_send(0x80+(1<<n));
-	printf("CAN_send_byte: ID %i L: %i DATA: %i %i %i %i %i %i %i %i\n",CAN_send_buffer.id,CAN_send_buffer.length,CAN_send_buffer.data[0],CAN_send_buffer.data[1],CAN_send_buffer.data[2],CAN_send_buffer.data[3],CAN_send_buffer.data[4],CAN_send_buffer.data[5],CAN_send_buffer.data[6],CAN_send_buffer.data[7]);
 
-	//printf("ID %i L: %i DATA: %i %i %i %i %i %i %i %i\n",CAN_send_buffer.id,CAN_send_buffer.length,CAN_send_buffer.data[0],CAN_send_buffer.data[1],CAN_send_buffer.data[2],CAN_send_buffer.data[3],CAN_send_buffer.data[4],CAN_send_buffer.data[5],CAN_send_buffer.data[6],CAN_send_buffer.data[7]);
-	
+	//MCP2515_request_to_send(MCP_MERRF+(1<<n));
+	MCP2515_request_to_send(n);
+	printf("CAN_send_byte: \tID %i L: %i DATA: %i %i %i %i %i %i %i %i\n",CAN_send_buffer.id,CAN_send_buffer.length,CAN_send_buffer.data[0],CAN_send_buffer.data[1],CAN_send_buffer.data[2],CAN_send_buffer.data[3],CAN_send_buffer.data[4],CAN_send_buffer.data[5],CAN_send_buffer.data[6],CAN_send_buffer.data[7]);
+
 }
 
-uint8_t CAN_read(uint8_t adr){
+int CAN_read(uint8_t adr){
 	return MCP2515_read(adr);
 }
 
-void CAN_data_receive() {
-	uint8_t n = CAN_transmit_complete();
-	if (n >= 0){
-		CAN_receive_buffer.id = ((CAN_read(RXBnSIDH + n*0x10)<<3)|(0b11100000 & (CAN_read(RXBnSIDL + n*0x10))>>5));
-		CAN_receive_buffer.length = (CAN_read(RXBnDLC + n*0x10) & 0b00001111);
-		for (uint8_t m = 0; m < CAN_receive_buffer.length; m++){
-			CAN_receive_buffer.data[m] = CAN_read(RXBnDM + m);
+
+
+void CAN_data_receive(void) {
+	if(receive_flag){
+		receive_flag = 0;
+		uint8_t n = CAN_reception_complete();
+		if (n >= 0){
+			CAN_receive_buffer.id = ((CAN_read(RXBnSIDH + n*0x10)<<3)|(0b11100000 & (CAN_read(RXBnSIDL + n*0x10))>>5));
+			CAN_receive_buffer.length = (CAN_read(RXBnDLC + n*0x10) & 0b00001111);
+			for (uint8_t m = 0; m < CAN_receive_buffer.length; m++){
+				CAN_receive_buffer.data[m] = CAN_read(RXBnDM + m);
+			}
 		}
+		printf("CAN_data_receive: \tID %i L: %i DATA: %i %i %i %i %i %i %i %i\n",CAN_receive_buffer.id,CAN_receive_buffer.length,CAN_receive_buffer.data[0],CAN_receive_buffer.data[1],CAN_receive_buffer.data[2],CAN_receive_buffer.data[3],CAN_receive_buffer.data[4],CAN_receive_buffer.data[5],CAN_receive_buffer.data[6],CAN_receive_buffer.data[7]);
 		
 	}
-	//printf("%i",CAN_receive_buffer.data[0]);
-	printf("CAN_data_receive: ID %i L: %i DATA: %i %i %i %i %i %i %i %i\n",CAN_receive_buffer.id,CAN_receive_buffer.length,CAN_receive_buffer.data[0],CAN_receive_buffer.data[1],CAN_receive_buffer.data[2],CAN_receive_buffer.data[3],CAN_receive_buffer.data[4],CAN_receive_buffer.data[5],CAN_receive_buffer.data[6],CAN_receive_buffer.data[7]);
-	
-	MCP2515_bit_modify(MCP_CANINTF,0xFF,0); //clear all interrupts //CHANGE THIS SO IT JUST CLEARS THE CORRECT INTERRUPTS
 }
 
 
 
-ISR(INT2_vect){//interrupt incomming message
+
+ISR(INT2_vect){//interrupt incoming message
+	receive_flag = 1;
+}
+
+void CAN_interrupt_setup(void){
 	cli();
-	//IF there is a message in inbox 0, flag 1<<0, then if there is a message in inbox 1, flag 1<<1 this
-	FLAG_new_message = 0b01;
+
+	//Extended MCU Control Register bit 0 ....turned off?
+	EMCUCR &= ~(1<<ISC2);
+	
+	//General Interrupt Control Register port int2 defined as on?
+	GICR |= (1<<INT2);
+
+	//Enable global interrupt.
 	sei();
+}
+
+int CAN_reception_complete(void){
+	printf("MCP_CANINTF = %i",MCP2515_read(MCP_CANINTF));
+	if(MCP2515_read(MCP_CANINTF) & MCP_RX0IF){
+		MCP2515_bit_modify(MCP_CANINTF,MCP_RX0IF,0);
+		return 0;
+	}
+	else if(MCP2515_read(MCP_CANINTF) & MCP_RX1IF){
+		MCP2515_bit_modify(MCP_CANINTF,MCP_RX1IF,0);
+		return 1;
+	}
+	else{
+		return -1;
+	}
 }
 
 

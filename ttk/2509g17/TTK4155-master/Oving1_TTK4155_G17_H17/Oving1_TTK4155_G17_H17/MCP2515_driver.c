@@ -9,17 +9,10 @@
 
 void MCP2515_initialize(void){
 	SPI_initialize();
- 	SPI_select();
-	SPI_send(MCP_RESET);
-	SPI_deselect();
-	SPI_select();
-	//MCP2515_bit_modify(MCP_CANCTRL,0b11100000,MODE_CONFIG);
-	MCP2515_bit_modify(MCP_CANCTRL,MODE_MASK,MODE_LOOPBACK);
-	//MCP2515_bit_modify(MCP_CANCTRL,0b11100000,0x00);
-	SPI_deselect();
+	MCP2515_reset();
 }
 
-void MCP2515_write(uint8_t adr, unsigned char data){
+void MCP2515_write(uint8_t adr, int8_t data){
 	SPI_select();
 	SPI_send(MCP_WRITE);
 	SPI_send(adr);
@@ -27,7 +20,14 @@ void MCP2515_write(uint8_t adr, unsigned char data){
 	SPI_deselect();
 }
 
-void MCP2515_read_buffer(unsigned char data){
+void MCP2515_reset(void){
+	printf("Resetting MCP2515\n");
+	SPI_select();
+	SPI_send(MCP_RESET);
+	SPI_deselect();
+}
+
+void MCP2515_read_buffer(uint8_t data){
 	SPI_select();
 	SPI_send(MCP_READ);
 	SPI_send(0x00);
@@ -64,7 +64,7 @@ uint8_t MCP2515_read_status(void){
 	return recieved_status;
 }
 
-void MCP2515_bit_modify(uint8_t adr, uint8_t mask, uint8_t data){
+void MCP2515_bit_modify(uint8_t adr, uint8_t mask, int8_t data){
 	SPI_select();
 	SPI_send(MCP_BITMOD);
 	SPI_send(adr);

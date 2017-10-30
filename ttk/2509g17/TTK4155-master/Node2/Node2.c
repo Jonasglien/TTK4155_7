@@ -15,6 +15,7 @@
 #include "uart.h"
 #include "can.h"
 
+void init(void);
 
 int main(void)
 {
@@ -22,30 +23,24 @@ int main(void)
 	init();
 	sei();
 	
-	uint8_t temp[8] = {1,2,3,4,5,6,7,8};
-	uint8_t *data = temp;
+	int temp[8] = {1,2,3,4,5,6,7,8};
+	int *data = temp;
 
 	uint8_t sendCAN = 0;
-	
-	uint8_t receiveCAN = 1;
-	
-	/*
-	CAN_message_send(data);
-	_delay_ms(100);
-	CAN_data_receive();
-	*/
-	
+
     while(1){
 		if(sendCAN){
 			data[7]++;
 			CAN_message_send(data);
-			CAN_data_receive();
+			//CAN_data_receive();
 			sendCAN = 1;
 		}
 		
-		_delay_ms(5000);
-		printf("Waiting for message ...\n");
-		if(receiveCAN){
+		
+		if(~sendCAN){
+			//printf("Waiting for message ...\n");
+			//printf("Status: %x\n",MCP2515_read_status());
+			//printf("Error?:%i\n",MCP2515_read(MCP_EFLG));
 			CAN_data_receive();
 		}
 	}

@@ -79,6 +79,8 @@ int signal_to_range(int signal, int signal_min, int signal_max, int output_min, 
 			 
 		}
 	}
+	
+	//reference = new_signal;
 	//printf("VALUE: \t%i\t%i\t%i\n",signal,new_signal, reference);
 	return reference;
 }

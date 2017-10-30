@@ -30,15 +30,45 @@ int main(void)
 	oled_goto_line(7);
 	sram_write_string(" - BYGGERN - G17");
 	
-		uint8_t temp[8] = {1,2,3,4,5,6,7,8};
-		uint8_t *data = &temp;
+		//uint8_t temp[8] = {1,8,3,4,5,3,7,6};
+		//uint8_t *data = temp;
 		
+	int8_t temp[8] = {0,1,2,3,4,5,6,7};//{'H','A','L','L','O','!',' ','§'};
+	int8_t *data = temp;
+
+	uint8_t sendCAN = 1;
 		
 	while(1){
-		menu_update();
+		if(sendCAN){
+			//data[7]++;
+			
+			//CAN_data_receive();
+			
+			data[0] = read_control_input('X');
+			data[1] = read_control_input('Y');
+			data[2] = read_control_input('L');
+			data[3] = read_control_input('R');
+			
+			
+			CAN_message_send(data);
+			
+			_delay_ms(1000);
+			
+			
+			
+		
+		}
+		printf("X: %i ; Y: %i\n", read_control_input('X'), read_control_input('Y'));
+		//menu_update();
 		//unsigned int temp = recieve_UART();
 		//send_UART(temp);
+		
+		//printf("Node 1 sending message...\n");
 		//CAN_message_send(data);
+		//_delay_ms(1000);
+		//printf("Node 1 waiting for message...\n");
+		//printf("Status: %x\n",MCP2515_read_status());
+		//printf("Error?:%i\n",MCP2515_read(MCP_EFLG));	
 		//CAN_data_receive();
 		//_delay_ms(1000);
 		
