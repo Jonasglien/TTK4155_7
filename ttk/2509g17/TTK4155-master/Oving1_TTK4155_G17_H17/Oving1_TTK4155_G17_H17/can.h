@@ -50,7 +50,7 @@ int CAN_read(uint8_t adr);
 int CAN_reception_complete(void);
 void CAN_construct_message(int id, uint8_t length);
 void CAN_interrupt_setup(void);
-
+void CAN_print(CAN_message_t message);
 //------------------------------------------//
 //	INTERRUPTS								//
 //------------------------------------------//

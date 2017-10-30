@@ -7,7 +7,7 @@
 
 #include "can.h"
 #define F_CPU 16000000UL
-#include <util/delay.h>
+//#include <util/delay.h>
 
 static CAN_message_t CAN_receive_buffer; 
 static CAN_message_t CAN_send_buffer;
@@ -32,15 +32,14 @@ void CAN_initialize(void){
 
 	CAN_interrupt_setup();
 	
-	printf("MCP_CANSTAT: %i\n", MCP2515_read(MCP_CANSTAT));
+	printf("MCP_CANSTAT: %i\n", MCP2515_read(MCP_CANSTAT));//comment out later
 	printf("CAN initialized.\n\n");
-
 }
 
-CAN_message_t* CAN_message_receive(void){						// What does this step do
+CAN_message_t* CAN_message_receive(void){						// What does this step do //NOT NECCECARY, but if we want to reference the recieved data from another part of the program this is necceccary
 	return &CAN_receive_buffer;						// What does this step do
 }
-
+	
 void CAN_construct_message(int id, uint8_t length){
 	CAN_send_buffer.id = id;
 	CAN_send_buffer.length = length;
@@ -49,7 +48,8 @@ void CAN_construct_message(int id, uint8_t length){
 	}
 }
 
-void CAN_message_send(int *data){//array of uint8_t as input
+	//array of int8_t as input (we chose int8_t over uint8_t so that we can send negative values
+void CAN_message_send(int8_t *data){//array of uint8_t as input
 	for(uint8_t i = 0; i < CAN_send_buffer.length; i++){
 		CAN_send_buffer.data[i] = data[i];
 	}
@@ -67,8 +67,8 @@ void CAN_send_byte(CAN_message_t* message,uint8_t n){
 
 	//MCP2515_request_to_send(MCP_MERRF+(1<<n));
 	MCP2515_request_to_send(n);
-	printf("CAN_send_byte: \tID %i L: %i DATA: %i %i %i %i %i %i %i %i\n",CAN_send_buffer.id,CAN_send_buffer.length,CAN_send_buffer.data[0],CAN_send_buffer.data[1],CAN_send_buffer.data[2],CAN_send_buffer.data[3],CAN_send_buffer.data[4],CAN_send_buffer.data[5],CAN_send_buffer.data[6],CAN_send_buffer.data[7]);
-
+	printf("\nSENT MESSAGE:");
+	CAN_print(CAN_send_buffer);
 }
 
 int CAN_read(uint8_t adr){
@@ -88,10 +88,18 @@ void CAN_data_receive(void) {
 				CAN_receive_buffer.data[m] =  CAN_read(RXBnDM + m);
 			}
 		}
-		printf("CAN_data_receive: \tID %i L: %i DATA: %i %i %i %i %i %i %i %i\n",CAN_receive_buffer.id,CAN_receive_buffer.length,CAN_receive_buffer.data[0],CAN_receive_buffer.data[1],CAN_receive_buffer.data[2],CAN_receive_buffer.data[3],CAN_receive_buffer.data[4],CAN_receive_buffer.data[5],CAN_receive_buffer.data[6],CAN_receive_buffer.data[7]);
-		
+		printf("\nRECIVED MESSAGE:");
+		CAN_print(CAN_receive_buffer);
 	}
 }
+
+void CAN_print(CAN_message_t message){
+	printf("\nID %i\tL: %i\tDATA:\n",message.id,message.length);
+	for(uint8_t i = 0; i < message.length; i++){
+		printf("%i\t",message.data[i]);
+	}
+}
+
 
 ISR(INT4_vect){//interrupt incoming message
 	

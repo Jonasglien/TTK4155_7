@@ -58,7 +58,10 @@ int main(void)
 			
 		
 		}
-		printf("X: %i ; Y: %i\n", read_control_input('X'), read_control_input('Y'));
+		//printf("X: %i ; Y: %i\n", read_control_input('X'), read_control_input('Y'));
+		sram_write_int(data[2] = read_control_input('L'));
+		sram_push();
+		
 		//menu_update();
 		//unsigned int temp = recieve_UART();
 		//send_UART(temp);
