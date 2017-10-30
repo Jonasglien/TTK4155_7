@@ -26,18 +26,27 @@ int main(void)
 	uint8_t *data = temp;
 
 	uint8_t sendCAN = 0;
+	
+	uint8_t receiveCAN = 1;
+	
+	/*
 	CAN_message_send(data);
 	_delay_ms(100);
-	data[4] = 100;
-	CAN_message_send(data);
 	CAN_data_receive();
-	CAN_data_receive();
+	*/
+	
     while(1){
 		if(sendCAN){
 			data[7]++;
 			CAN_message_send(data);
 			CAN_data_receive();
 			sendCAN = 1;
+		}
+		
+		_delay_ms(5000);
+		printf("Waiting for message ...\n");
+		if(receiveCAN){
+			CAN_data_receive();
 		}
 	}
 	

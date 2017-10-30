@@ -24,7 +24,7 @@ void CAN_initialize(void){
 	MCP2515_bit_modify(MCP_CANINTE,0x01,1);
 	
 	//set CAN mode
-	MCP2515_bit_modify(MCP_CANCTRL, MODE_MASK, MODE_LOOPBACK); 
+	MCP2515_bit_modify(MCP_CANCTRL, MODE_MASK, MODE_NORMAL); 
 	
 	// Initialize empty message for transmission
 	CAN_construct_message(CAN_ID,CAN_MESSAGE_LENGTH);
@@ -80,7 +80,8 @@ uint8_t receive_flag = 0;
 void CAN_data_receive(void) {
 	if(receive_flag){
 		receive_flag = 0;
-		uint8_t n = CAN_transmit_complete();
+		//uint8_t n = CAN_transmit_complete();
+		uint8_t n = CAN_reception_complete();
 		if (n >= 0){
 			CAN_receive_buffer.id = ((CAN_read(RXBnSIDH + n*0x10)<<3)|(0b11100000 & (CAN_read(RXBnSIDL + n*0x10))>>5));
 			CAN_receive_buffer.length = (CAN_read(RXBnDLC + n*0x10) & 0b00001111);
@@ -104,7 +105,7 @@ void CAN_interrupt_setup(void){
 	// Use PE4 as external interrupt pin
 	DDRE &= ~(1<<PINE4);
 	
-	// Trigger interrupt on ralling edge (Compare sec 15.2.2 of Atmega2560 data sheet).
+	// Trigger interrupt on r edge (Compare sec 15.2.2 of Atmega2560 data sheet).
 	EICRB &= ~(1<<ISC40);	//x0
 	EICRB |= (1<<ISC41);	//1x
 	
@@ -115,15 +116,31 @@ void CAN_interrupt_setup(void){
 	sei();
 }
 
-
+uint8_t CAN_reception_complete(void){
+	if(MCP2515_read(MCP_CANINTF) & MCP_RX0IF){
+		MCP2515_bit_modify(MCP_CANINTF,MCP_RX0IF,0);
+		return 0;
+	}
+	else if(MCP2515_read(MCP_CANINTF) & MCP_RX1IF){
+		MCP2515_bit_modify(MCP_CANINTF,MCP_RX1IF,0);
+		return 1;
+	}
+	else{
+		return -1;
+	}
+	
+	
+}
 uint8_t CAN_transmit_complete(void){
 	
 	volatile char interrupt = MCP2515_read(MCP_CANINTF);
 
-	while((!((1 << MCP_RX0IF) & interrupt))  &&  (!((1 << MCP_RX1IF)&interrupt))){
+	while( (!( (1 << MCP_RX0IF) & interrupt) )  &&  (!((1 << MCP_RX1IF)&interrupt))){
 		interrupt = MCP2515_read(MCP_CANINTF);
 	}
 	
+	
+	printf("Interrupt: %i", interrupt);
 
 	if((1 << MCP_RX1IF)&interrupt){
 		FLAG_new_message = 1;
@@ -136,4 +153,5 @@ uint8_t CAN_transmit_complete(void){
 		MCP2515_bit_modify(MCP_CANINTF,0xFF,0); //clear all interrupts //CHANGE THIS SO IT JUST CLEARS THE CORRECT INTERRUPTS
 		return -1;
 	}
+	
 }
